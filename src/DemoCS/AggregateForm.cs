@@ -62,13 +62,13 @@ namespace Demo
         private void filterTextBox_TextChanged(object sender, EventArgs e)
         {
             // Change the filter of the view.
-            itemsView.Filter = BindingListView<Item>.CreateItemFilter(new Predicate<Item>(
+            itemsView.ApplyFilter(
                 delegate(Item item)
                 {
                     // uses ToLower() to ignore case of text.
                     return item.Title.ToLower().Contains(filterTextBox.Text.ToLower());
                 }
-            ));
+            );
         }
     }
 }

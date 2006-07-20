@@ -51,7 +51,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="CompositeItemFilter.cs" />
-    <Compile Include="EditableObject.cs" />
+    <Compile Include="ObjectView.cs" />
     <Compile Include="IItemFilter.cs" />
     <Compile Include="INotifyingEditableObject.cs" />
     <Compile Include="EditableObjectPropertyDescriptor.cs" />
