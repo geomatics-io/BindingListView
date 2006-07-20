@@ -46,23 +46,11 @@ Public Class AggregateForm
     End Sub
 
     Private Sub filterTextBox_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles filterTextBox.TextChanged
-
-        ' Change the filter of the view.
-        itemsView.Filter = New ItemFilter(filterTextBox.Text)
+        itemsView.ApplyFilter(AddressOf TitleFilter)
     End Sub
 
-    Private Class ItemFilter
-        Implements IItemFilter(Of Item)
-
-        Private _title As String
-
-        Public Sub New(ByVal title As String)
-            _title = title.ToLower()
-        End Sub
-
-        Public Function Include(ByVal item As Item) As Boolean Implements Equin.ApplicationFramework.IItemFilter(Of Item).Include
-            Return item.Title.ToLower().Contains(_title)
-        End Function
-    End Class
+    Private Function TitleFilter(ByVal item As Item) As Boolean
+        Return item.Title.ToLower().Contains(filterTextBox.Text.ToLower())
+    End Function
 
 End Class
