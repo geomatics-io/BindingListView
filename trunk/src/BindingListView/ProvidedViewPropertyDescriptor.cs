@@ -21,14 +21,14 @@ namespace Equin.ApplicationFramework
 
         public override Type ComponentType
         {
-            get { return typeof(EditableObject<T>); }
+            get { return typeof(ObjectView<T>); }
         }
 
         public override object GetValue(object component)
         {
             if (ComponentType.IsAssignableFrom(component.GetType()))
             {
-                return (component as EditableObject<T>).GetProvidedView(Name);
+                return (component as ObjectView<T>).GetProvidedView(Name);
             }
 
             throw new ArgumentException("Type of component is not valid.", "component");
