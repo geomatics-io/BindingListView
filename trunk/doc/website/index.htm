@@ -1,0 +1,122 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>BindingListView</title>
+</head>
+<body>
+    <h1>
+        BindingListView</h1>
+    <h2>
+        Introduction</h2>
+    <p>
+        The BindingListView .NET library provides a type-safe, sortable, filterable, data-bindable
+        view of one or more lists of objects. It is the business objects equivalent of using
+        a DataView on a DataTable in ADO.NET. If you have a list of objects to display on
+        a Windows Forms UI (e.g. in a DataGridView) and want to allow your user to sort
+        and filter, then this is the library to use!
+    </p>
+    <p>
+        For those who like to dive straight into the code, the source is available from
+        the <a href="https://svn.sourceforge.net/svnroot/blw/trunk/">SubVersion repository</a>
+        or ZIPed as a release. The source contains a few example projects demonstrating
+        what the library can do.<br />
+        If you just want to use the library download the compiled DLL.
+    </p>
+    <p>
+        The library makes use of generics and so only works with the .NET 2.0 runtime. It
+        should work with any .NET language: C#, VB.NET, etc.</p>
+    <h2>
+        Quick-start Guide</h2>
+    <p>
+        Add a reference to the "Equin.ApplicationFramework.BindingListView.dll" assembly.
+        (You can download the binary or compile from source.) The classes you'll want exist
+        in the <code>Equin.ApplicationFramework</code> namespace.
+    </p>
+    <p>
+        Here is a very simple example of creating a view of a list of objects (in C#):
+    </p>
+    <p>
+        <code>List&lt;Customer&gt; customers = GetCustomers();<br />
+            <b>BindingListView&lt;Customer&gt; view = new BindingListView&lt;Customer&gt;(customers);</b><br />
+            dataGridView1.DataSource = view; </code>
+    </p>
+    <p>
+        The bolded line creates a new view and passes the customers list as the "source"
+        list. The view is then data bound to a DataGridView control. In the grid you can
+        now sort by clicking on the headers. This was not possible if we had bound directly
+        to the list object instead.</p>
+    <p>
+        You can programatically sort the view using the ApplySort method. There are a number
+        of overloads, the simplist of which takes a string in the form of an SQL "order
+        by" clause. For example, <code>view.ApplySort("Balance DESC, Surname")</code> would
+        first sort by the Balance property (putting the highest first) and then sort by
+        Surname (is normal ascending order). You can specify zero or more properties to
+        sort by. With each property you can enter "DESC" to sort in descending order.</p>
+    <p>
+        The restrict the items displayed by the view you can set a filter. A simple filter
+        is a function that takes an object and returns true or false depending on if the
+        object should appear in the view. More advanced filters can be created by creating
+        a class that implements the <code>IItemFilter&lt;T&gt;</code> interface.<br />
+        This example shows creating a filter using an anonymous method in C#.
+    </p>
+    <p>
+        <code>view.ApplyFilter(delegate(Customer customer) { return customer.Balance > 1000;
+            }); </code>
+    </p>
+    <p>
+        In VB.NET you will have to explicitly create the function.
+    </p>
+    <p>
+        <code>view.ApplyFilter(AddressOf BalanceFilter)<br />
+            ...<br />
+            Function BalanceFilter(ByVal customer as Customer) as Boolean<br />
+            &nbsp;&nbsp;Return customer.Balance > 1000<br />
+            End Function </code>
+    </p>
+    <p>
+        A filter will not actually remove items from the source list, they are just not
+        visible when bound to a grid for example.
+    </p>
+    <h2>
+        An Important Detail</h2>
+    <p>
+        The BindingListView works by creating a wrapper object around each item in a source
+        list. This is just like how a DataView contains DataRowViews, which wrap DataRow
+        objects, in ADO.NET. The wrapper object in a BindingListView is of type <code>ObjectView&lt;T&gt;</code>.
+        The only time you usually need to interact with an object view is when retrieving
+        items from the view in code.
+    </p>
+    <p>
+        <code>ObjectView&lt;Customer&gt; customerView = view[0]; // Get first item in view<br />
+            Customer customer = customerView.Object;</code></p>
+    <p>
+        The example above uses the <code>Object</code> property of the ObjectView to return
+        the original object.<br />
+        This important detail impacts the most often when you are using a BindingSource
+        component on a Form, as outlined in this following example.</p>
+    <p>
+        <code>// Upon a customer being selected (in a grid or listbox for example)<br />
+            // we want to do something with that object.<br />
+            private void customersBindingSource_PositionChanged(object sender, EventArgs e)<br />
+            {<br />
+            &nbsp;&nbsp;// This cast will fail at runtime.<br />
+            &nbsp;&nbsp;Customer customer = (Customer)customersBindingSource.Current<br />
+            &nbsp;&nbsp;// The correct code is this<br />
+            &nbsp;&nbsp;Customer customer = ((ObjectView&lt;Customer&gt;)customersBindingSource.Current).Object<br />
+            } </code>
+    </p>
+    <p>
+        BindingSource.Current is typed as just Object, so the invalid cast to Customer cannot be
+        caught at compile time. This causes a runtime cast exception instead.
+    </p>
+    <p>
+        Copyright &copy; Andrew Davey 2006<br />
+        Check my <a href="http://blogs.warwick.ac.uk/andrewdavey">blog</a> for news and
+        updates.
+    </p>
+    <p>
+        <a href="http://sourceforge.net">
+            <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=166250&amp;type=1" width="88"
+                height="31" alt="SourceForge.net Logo" /></a>
+    </p>
+</body>
+</html>

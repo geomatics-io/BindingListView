@@ -201,15 +201,15 @@ namespace Equin.ApplicationFramework
         }
         
         /// <summary>
-        /// Gets the item at the given index in the view.
+        /// Gets the ObjectView&lt;T&gt; of the item at the given index in the view.
         /// </summary>
         /// <param name="index">The item index.</param>
-        /// <returns>The item.</returns>
-        public T this[int index]
+        /// <returns>The ObjectView&lt;T&gt; of the item.</returns>
+        public ObjectView<T> this[int index]
         {
             get
             {
-                return _sourceIndices[index].Key.Item.Object;
+                return _sourceIndices[index].Key.Item;
             }
         }
 
@@ -1634,7 +1634,7 @@ namespace Equin.ApplicationFramework
         {
             get
             {
-                return _sourceIndices[index].Key.Item;
+                return this[index];
             }
             set
             {
