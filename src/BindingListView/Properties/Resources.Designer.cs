@@ -61,6 +61,15 @@ namespace Equin.ApplicationFramework.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot add an external item to the view. Use AddNew() or add to source list instead..
+        /// </summary>
+        internal static string CannotAddItem {
+            get {
+                return ResourceManager.GetString("CannotAddItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot add a new item due to no object being provided in the AddingNew event and a lack of default public constructor..
         /// </summary>
         internal static string CannotAddNewItem {
@@ -93,15 +102,6 @@ namespace Equin.ApplicationFramework.Properties {
         internal static string CannotInsertItem {
             get {
                 return ResourceManager.GetString("CannotInsertItem", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot remove an item from this view. Use RemoveAt()..
-        /// </summary>
-        internal static string CannotRemoveItem {
-            get {
-                return ResourceManager.GetString("CannotRemoveItem", resourceCulture);
             }
         }
         

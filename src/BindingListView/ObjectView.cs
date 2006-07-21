@@ -17,13 +17,13 @@ namespace Equin.ApplicationFramework
     /// </remarks>
     /// <typeparam name="T">The type of object being viewed.</typeparam>
     [Serializable]
-    public class EditableObject<T> : INotifyingEditableObject, IDataErrorInfo, INotifyPropertyChanged, ICustomTypeDescriptor
+    public class ObjectView<T> : INotifyingEditableObject, IDataErrorInfo, INotifyPropertyChanged, ICustomTypeDescriptor
     {
         /// <summary>
-        /// Creates a new <see cref="EditableObject&ltT&gt;"/> wrapper for a <typeparamref name="T"/> object.
+        /// Creates a new <see cref="ObjectView&ltT&gt;"/> wrapper for a <typeparamref name="T"/> object.
         /// </summary>
         /// <param name="object">The <typeparamref name="T"/> object being wrapped.</param>
-        public EditableObject(T @object, AggregateBindingListView<T> parent)
+        public ObjectView(T @object, AggregateBindingListView<T> parent)
         {
             _parent = parent;
 
@@ -45,7 +45,7 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// The view containing this EditableObject.
+        /// The view containing this ObjectView.
         /// </summary>
         private AggregateBindingListView<T> _parent;
         /// <summary>
@@ -91,11 +91,11 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Casts an EditableObject&lt;T&gt; to a T by getting the wrapped T object.
+        /// Casts an ObjectView&lt;T&gt; to a T by getting the wrapped T object.
         /// </summary>
-        /// <param name="eo">The EditableObject&lt;T&gt; to cast to a T</param>
+        /// <param name="eo">The ObjectView&lt;T&gt; to cast to a T</param>
         /// <returns>The object that is wrapped.</returns>
-        public static explicit operator T(EditableObject<T> eo)
+        public static explicit operator T(ObjectView<T> eo)
         {
             return eo.Object;
         }
@@ -111,9 +111,9 @@ namespace Equin.ApplicationFramework
             {
                 return Object.Equals(obj);
             }
-            else if (obj is EditableObject<T>)
+            else if (obj is ObjectView<T>)
             {
-                return Object.Equals((obj as EditableObject<T>).Object);
+                return Object.Equals((obj as ObjectView<T>).Object);
             }
             else
             {

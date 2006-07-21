@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace Equin.ApplicationFramework
 {
     /// <summary>
-    /// Allows a <see cref="EditableObject&lt;T&gt;"/> to appear to data binding as type <typeparamref name="T"/>.
+    /// Allows a <see cref="ObjectView&lt;T&gt;"/> to appear to data binding as type <typeparamref name="T"/>.
     /// In additon, it will raise property changed events on behalf of the wrapped data object.
     /// </summary>
     /// <typeparam name="T">The type of data object being viewed.</typeparam>
@@ -67,7 +67,7 @@ namespace Equin.ApplicationFramework
         /// <summary>
         /// Returns the <typeparamref name="T"/> that is actually being edited.
         /// </summary>
-        /// <param name="component">An <see cref="EditableObject&lt;T&gt;"/> wrapping a <typeparamref name="T"/> object.</param>
+        /// <param name="component">An <see cref="ObjectView&lt;T&gt;"/> wrapping a <typeparamref name="T"/> object.</param>
         /// <returns>The <typeparamref name="T"/>.</returns>
         private T GetItem(object component)
         {
@@ -75,9 +75,9 @@ namespace Equin.ApplicationFramework
             {
                 return (T)component;
             }
-            else if (component is EditableObject<T>)
+            else if (component is ObjectView<T>)
             {
-                return ((EditableObject<T>)component).Object;
+                return ((ObjectView<T>)component).Object;
             }
             else if (component is ListItemPair<T>)
             {

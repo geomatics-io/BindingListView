@@ -20,7 +20,7 @@ namespace Equin.ApplicationFramework
             _filter = IncludeAllItemFilter<T>.Instance;
             // Start with no sorts applied.
             _sorts = new ListSortDescriptionCollection();
-            _eoCache = new Dictionary<T,EditableObject<T>>();
+            _eoCache = new Dictionary<T,ObjectView<T>>();
         }
 
         public AggregateBindingListView(IContainer container)
@@ -61,7 +61,7 @@ namespace Equin.ApplicationFramework
         /// <summary>
         /// The item in the process of being added to the view.
         /// </summary>
-        private EditableObject<T> _newItem;
+        private ObjectView<T> _newItem;
         /// <summary>
         /// The IList we will add new items to.
         /// </summary>
@@ -81,10 +81,10 @@ namespace Equin.ApplicationFramework
         /// </summary>
         private string _dataMember;
         /// <summary>
-        /// EditableObject cache used to prevent re-creation of existing object wrappers when 
+        /// ObjectView cache used to prevent re-creation of existing object wrappers when 
         /// in FilterAndSort().
         /// </summary>
-        private Dictionary<T, EditableObject<T>> _eoCache;
+        private Dictionary<T, ObjectView<T>> _eoCache;
 
         #endregion
         
@@ -282,8 +282,8 @@ namespace Equin.ApplicationFramework
         /// Adds a new item to the view. Note that EndNew must be called to commit
         /// the item to the to the source list.
         /// </summary>
-        /// <returns>The new item, wrapped in an EditableObject<typeparamref name="T"/>.</returns>
-        public EditableObject<T> AddNew()
+        /// <returns>The new item, wrapped in an ObjectView<typeparamref name="T"/>.</returns>
+        public ObjectView<T> AddNew()
         {
             // Are we currently adding another item?
             if (_newItem != null)
@@ -295,8 +295,8 @@ namespace Equin.ApplicationFramework
             // Get the new item to add.
             T item = OnAddingNew();
 
-            // Create the EditableObject<T> wrapper for the item.
-            EditableObject<T> editableObject = new EditableObject<T>(item, this);
+            // Create the ObjectView<T> wrapper for the item.
+            ObjectView<T> editableObject = new ObjectView<T>(item, this);
             
             _eoCache[item] = editableObject;
 
@@ -431,7 +431,7 @@ namespace Equin.ApplicationFramework
         /// </summary>
         protected void FilterAndSort()
         {
-            // Since we will actually recreate EditableObject<T> objects for each item
+            // Since we will actually recreate ObjectView<T> objects for each item
             // we must first remove any existing event handlers.
             // Otherwise we will have event handlers trigger more than once!
             foreach (KeyValuePair<ListItemPair<T>, int> kvp in _sourceIndices)
@@ -457,10 +457,10 @@ namespace Equin.ApplicationFramework
                     T item = (T)sourceList[i];
                     if (_filter.Include(item))
                     {
-                        EditableObject<T> editableObject;
+                        ObjectView<T> editableObject;
                         if (!_eoCache.ContainsKey(item))
                         {
-                            editableObject = new EditableObject<T>(item, this);
+                            editableObject = new ObjectView<T>(item, this);
                             _eoCache.Add(item, editableObject);
                         }
                         else
@@ -522,12 +522,12 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Handles the <see cref="EditableObject&lt;T&gt;"/> EndedEdit event.
+        /// Handles the <see cref="ObjectView&lt;T&gt;"/> EndedEdit event.
         /// </summary>
-        /// <param name="sender">The <see cref="EditableObject&lt;T&gt;"/> that raised the event.</param>
+        /// <param name="sender">The <see cref="ObjectView&lt;T&gt;"/> that raised the event.</param>
         private void EndedItemEdit(object sender, EventArgs e)
         {
-            EditableObject<T> editableObject = (EditableObject<T>)sender;
+            ObjectView<T> editableObject = (ObjectView<T>)sender;
             
             // Check if filtering removed the item from view
             // by getting the index before and after
@@ -1314,7 +1314,7 @@ namespace Equin.ApplicationFramework
         /// <param name="key">The value being sought.</param>
         /// <returns>The index of the item, or -1 if not found.</returns>
         /// <remarks>
-        /// Since the view exposes <see cref="EditableObject&lt;T&gt;"/> objects to data binding
+        /// Since the view exposes <see cref="ObjectView&lt;T&gt;"/> objects to data binding
         /// this method may get called since those we pass out <see cref="EditableObjectPropertyDescriptor&lt;T&gt;"/>
         /// objects from <see cref="ITypedList"/>.<see cref="ITypedList.GetProperties">GetProperties()</see>.
         /// </remarks>
@@ -1476,42 +1476,13 @@ namespace Equin.ApplicationFramework
         /// </exception>
         int IList.Add(object value)
         {
-            if (NewItemsList == null)
+            if (value == null)
             {
-                throw new InvalidOperationException(Properties.Resources.CannotAddWhenNewItemsListNull);
-            }
-            if (!(value is T))
-            {
-                throw new ArgumentException(string.Format(Properties.Resources.ItemTypeIncorrect, typeof(T).FullName), "value");
+                AddNew();
+                return Count - 1;
             }
 
-            // Are we currently adding another item?
-            if (_newItem != null)
-            {
-                // Need to commit previous new item before adding another.
-                EndNew(_sourceIndices.Count - 1);
-            }
-
-            // Get the new item to add.
-            T item = (T)value;
-
-            // Create the EditableObject<T> wrapper for the item.
-            EditableObject<T> editableObject = new EditableObject<T>(item, this);
-
-            _eoCache[item] = editableObject;
-
-            HookPropertyChangedEvent(editableObject);
-
-            // Set the _newItem reference so we know what to use when ending/cancelling this add operation.
-            _newItem = editableObject;
-
-            // Add to indicies list, but index of -1 means it's not in the source list yet.
-            _sourceIndices.Add(_newItemsList, editableObject, -1);
-            // Tell any data binders that we've added an item to the view.
-            // Put it at the end of the list.
-            OnListChanged(ListChangedType.ItemAdded, _sourceIndices.Count - 1);
-
-            return _sourceIndices.Count - 1;
+            throw new NotSupportedException(Properties.Resources.CannotAddItem);
         }
 
         /// <summary>
@@ -1534,9 +1505,9 @@ namespace Equin.ApplicationFramework
         bool IList.Contains(object item)
         {
             // See if the source indices contain the item
-            if (item is EditableObject<T>)
+            if (item is ObjectView<T>)
             {
-                return _sourceIndices.ContainsKey((EditableObject<T>)item);
+                return _sourceIndices.ContainsKey((ObjectView<T>)item);
             }
             else if (item is T)
             {
@@ -1555,9 +1526,9 @@ namespace Equin.ApplicationFramework
         /// <returns>The index of the item, or -1 if not found.</returns>
         int IList.IndexOf(object item)
         {
-            if (item is EditableObject<T>)
+            if (item is ObjectView<T>)
             {
-                return _sourceIndices.IndexOfKey(item as EditableObject<T>);
+                return _sourceIndices.IndexOfKey(item as ObjectView<T>);
             }
             else if (item is T)
             {
@@ -1615,6 +1586,10 @@ namespace Equin.ApplicationFramework
             }
         }
 
+        /// <summary>
+        /// Removes the given item from the view and underlying source list.
+        /// </summary>
+        /// <param name="value">Either an ObjectView&lt;T&gt; or T to remove.</param>
         void IList.Remove(object value)
         {
             int index = (this as IList).IndexOf(value);
@@ -1648,10 +1623,10 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Gets the <see cref="EditableObject&lt;T&gt;"/> at the given index.
+        /// Gets the <see cref="ObjectView&lt;T&gt;"/> at the given index.
         /// </summary>
         /// <param name="index">The index of the item to retrieve.</param>
-        /// <returns>An <see cref="EditableObject&lt;T&gt;"/> object.</returns>
+        /// <returns>An <see cref="ObjectView&lt;T&gt;"/> object.</returns>
         /// <exception cref="System.NotSupportException">
         /// Cannot set an item in the view.
         /// </exception>
@@ -1675,7 +1650,7 @@ namespace Equin.ApplicationFramework
         #region ICollection Members
 
         /// <summary>
-        /// Copies the <see cref="EditableObject&lt;T&gt;"/> objects of the view to an <see cref="System.Array"/>, starting at a particular System.Array index.
+        /// Copies the <see cref="ObjectView&lt;T&gt;"/> objects of the view to an <see cref="System.Array"/>, starting at a particular System.Array index.
         /// </summary>
         /// <param name="array">The one-dimensional <see cref="System.Array"/> that is the destination of the elements copied from view. The System.Array must have zero-based indexing.</param>
         /// <param name="index">The zero-based index in array at which copying begins. </param>
@@ -1715,7 +1690,7 @@ namespace Equin.ApplicationFramework
         #region IEnumerable Members
 
         /// <summary>
-        /// Returns an enumerator that iterates through all the <see cref="EditableObject&lt;T&gt;"/> items in the view.
+        /// Returns an enumerator that iterates through all the <see cref="ObjectView&lt;T&gt;"/> items in the view.
         /// This does not include those items excluded by the current filter.
         /// </summary>
         /// <returns>An IEnumerator to iterate with.</returns>
@@ -1780,7 +1755,7 @@ namespace Equin.ApplicationFramework
             return sourceListProperty.Name + "View";
         }
 
-        protected internal object CreateProvidedView(EditableObject<T> @object, PropertyDescriptor sourceListProperty)
+        protected internal object CreateProvidedView(ObjectView<T> @object, PropertyDescriptor sourceListProperty)
         {
             object list = sourceListProperty.GetValue(@object);
             Type viewType = GetProvidedViewType(sourceListProperty);
@@ -1863,11 +1838,11 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Attaches event handlers to the given <see cref="EditableObject&lt;T&gt;"/>'s 
+        /// Attaches event handlers to the given <see cref="ObjectView&lt;T&gt;"/>'s 
         /// edit life cycle notification events.
         /// </summary>
-        /// <param name="editableObject">The <see cref="EditableObject&lt;T&gt;"/> to listen to.</param>
-        private void HookEditableObjectEvents(EditableObject<T> editableObject)
+        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to listen to.</param>
+        private void HookEditableObjectEvents(ObjectView<T> editableObject)
         {
             editableObject.EditBegun += new EventHandler(BegunItemEdit);
             editableObject.EditCancelled += new EventHandler(CancelledItemEdit);
@@ -1875,11 +1850,11 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Detaches event handlers from the given <see cref="EditableObject&lt;T&gt;"/>'s 
+        /// Detaches event handlers from the given <see cref="ObjectView&lt;T&gt;"/>'s 
         /// edit life cycle notification events.
         /// </summary>
-        /// <param name="editableObject">The <see cref="EditableObject&lt;T&gt;"/> to stop listening to.</param>
-        private void UnHookEditableObjectEvents(EditableObject<T> editableObject)
+        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to stop listening to.</param>
+        private void UnHookEditableObjectEvents(ObjectView<T> editableObject)
         {
             editableObject.EditBegun -= new EventHandler(BegunItemEdit);
             editableObject.EditCancelled -= new EventHandler(CancelledItemEdit);
@@ -1887,19 +1862,19 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Attaches an event handler to the <see cref="EditableObject&lt;T&gt;"/>'s PropertyChanged event.
+        /// Attaches an event handler to the <see cref="ObjectView&lt;T&gt;"/>'s PropertyChanged event.
         /// </summary>
-        /// <param name="editableObject">The <see cref="EditableObject&lt;T&gt;"/> to listen to.</param>
-        private void HookPropertyChangedEvent(EditableObject<T> editableObject)
+        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to listen to.</param>
+        private void HookPropertyChangedEvent(ObjectView<T> editableObject)
         {
             editableObject.PropertyChanged += new PropertyChangedEventHandler(ItemPropertyChanged);
         }
 
         /// <summary>
-        /// Detaches the event handler from the <see cref="EditableObject&lt;T&gt;"/>'s PropertyChanged event.
+        /// Detaches the event handler from the <see cref="ObjectView&lt;T&gt;"/>'s PropertyChanged event.
         /// </summary>
-        /// <param name="editableObject">The <see cref="EditableObject&lt;T&gt;"/> to stop listening to.</param>
-        private void UnHookPropertyChangedEvent(EditableObject<T> editableObject)
+        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to stop listening to.</param>
+        private void UnHookPropertyChangedEvent(ObjectView<T> editableObject)
         {
             editableObject.PropertyChanged -= new PropertyChangedEventHandler(ItemPropertyChanged);
         }

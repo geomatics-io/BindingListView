@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CannotAddItem" xml:space="preserve">
+    <value>Cannot add an external item to the view. Use AddNew() or add to source list instead.</value>
+  </data>
   <data name="CannotAddNewItem" xml:space="preserve">
     <value>Cannot add a new item due to no object being provided in the AddingNew event and a lack of default public constructor.</value>
   </data>
@@ -128,9 +131,6 @@
   </data>
   <data name="CannotInsertItem" xml:space="preserve">
     <value>Cannot insert an external item into this collection.</value>
-  </data>
-  <data name="CannotRemoveItem" xml:space="preserve">
-    <value>Cannot remove an item from this view. Use RemoveAt().</value>
   </data>
   <data name="CannotSetItem" xml:space="preserve">
     <value>Cannot set an item in the view.</value>
