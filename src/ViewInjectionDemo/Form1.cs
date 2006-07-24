@@ -23,10 +23,6 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
             // instead of the normal list.
             ordersBindingSource.DataMember = "OrdersView";
 
-            ordersBindingSource.AddingNew += delegate(object s, AddingNewEventArgs e)
-            {
-                e.NewObject = new Order();
-            };
         }
 
         private BindingList<Customer> GetCustomers()
@@ -38,6 +34,11 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
             customers.Add(new Customer("Chris"));
 
             return customers;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(ordersBindingSource.Current.GetType().Name);
         }
 
     }
