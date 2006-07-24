@@ -54,7 +54,6 @@
     <Compile Include="ObjectView.cs" />
     <Compile Include="IItemFilter.cs" />
     <Compile Include="INotifyingEditableObject.cs" />
-    <Compile Include="EditableObjectPropertyDescriptor.cs" />
     <Compile Include="InvalidSourceListException.cs" />
     <Compile Include="MultiSourceIndexList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

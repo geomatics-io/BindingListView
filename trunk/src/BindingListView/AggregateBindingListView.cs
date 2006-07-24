@@ -20,7 +20,7 @@ namespace Equin.ApplicationFramework
             _filter = IncludeAllItemFilter<T>.Instance;
             // Start with no sorts applied.
             _sorts = new ListSortDescriptionCollection();
-            _eoCache = new Dictionary<T,ObjectView<T>>();
+            _objectViewCache = new Dictionary<T,ObjectView<T>>();
         }
 
         public AggregateBindingListView(IContainer container)
@@ -84,7 +84,7 @@ namespace Equin.ApplicationFramework
         /// ObjectView cache used to prevent re-creation of existing object wrappers when 
         /// in FilterAndSort().
         /// </summary>
-        private Dictionary<T, ObjectView<T>> _eoCache;
+        private Dictionary<T, ObjectView<T>> _objectViewCache;
 
         #endregion
         
@@ -296,22 +296,22 @@ namespace Equin.ApplicationFramework
             T item = OnAddingNew();
 
             // Create the ObjectView<T> wrapper for the item.
-            ObjectView<T> editableObject = new ObjectView<T>(item, this);
+            ObjectView<T> objectView = new ObjectView<T>(item, this);
             
-            _eoCache[item] = editableObject;
+            _objectViewCache[item] = objectView;
 
-            HookPropertyChangedEvent(editableObject);
+            HookPropertyChangedEvent(objectView);
 
             // Set the _newItem reference so we know what to use when ending/cancelling this add operation.
-            _newItem = editableObject;
+            _newItem = objectView;
 
             // Add to indicies list, but index of -1 means it's not in the source list yet.
-            _sourceIndices.Add(_newItemsList, editableObject, -1);
+            _sourceIndices.Add(_newItemsList, objectView, -1);
             // Tell any data binders that we've added an item to the view.
             // Put it at the end of the list.
             OnListChanged(ListChangedType.ItemAdded, _sourceIndices.Count - 1);
             
-            return editableObject;
+            return objectView;
         }
 
         /// <summary>
@@ -458,14 +458,14 @@ namespace Equin.ApplicationFramework
                     if (_filter.Include(item))
                     {
                         ObjectView<T> editableObject;
-                        if (!_eoCache.ContainsKey(item))
+                        if (!_objectViewCache.ContainsKey(item))
                         {
                             editableObject = new ObjectView<T>(item, this);
-                            _eoCache.Add(item, editableObject);
+                            _objectViewCache.Add(item, editableObject);
                         }
                         else
                         {
-                            editableObject = _eoCache[item];
+                            editableObject = _objectViewCache[item];
                         }
                         // And listen to the editing notification and property changed events.
                         HookEditableObjectEvents(editableObject);
@@ -1310,24 +1310,6 @@ namespace Equin.ApplicationFramework
         /// Returns the index of the first item in the view who's property equals the given value.
         /// -1 is returned if no item is found.
         /// </summary>
-        /// <param name="property">The property of each item to check.</param>
-        /// <param name="key">The value being sought.</param>
-        /// <returns>The index of the item, or -1 if not found.</returns>
-        /// <remarks>
-        /// Since the view exposes <see cref="ObjectView&lt;T&gt;"/> objects to data binding
-        /// this method may get called since those we pass out <see cref="EditableObjectPropertyDescriptor&lt;T&gt;"/>
-        /// objects from <see cref="ITypedList"/>.<see cref="ITypedList.GetProperties">GetProperties()</see>.
-        /// </remarks>
-        public int Find(EditableObjectPropertyDescriptor<T> property, object key)
-        {
-            // Simply get the item property descriptor and use that to search.
-            return Find(property.ItemPropertyDescriptor, key);
-        }
-
-        /// <summary>
-        /// Returns the index of the first item in the view who's property equals the given value.
-        /// -1 is returned if no item is found.
-        /// </summary>
         /// <param name="property">The property name of each item to check.</param>
         /// <param name="key">The value being sought.</param>
         /// <returns>The index of the item, or -1 if not found.</returns>
@@ -1724,25 +1706,26 @@ namespace Equin.ApplicationFramework
                 // Get the properties ourself.
                 originalProps = System.Windows.Forms.ListBindingHelper.GetListItemProperties(typeof(T), listAccessors);
             }
-            
-            if (listAccessors == null || listAccessors.Length == 0)
+
+            if (listAccessors != null && listAccessors.Length > 0)
             {
-                List<PropertyDescriptor> props = new List<PropertyDescriptor>();
-                foreach (PropertyDescriptor pd in originalProps)
+                Type type = originalProps[0].ComponentType;
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ObjectView<>))
                 {
-                    // We actually create EditableObjectPropertyDescriptor<T> property descriptors
-                    // that wrap the normal ProperptyDescriptors of the items.
-                    // This is so we can raise PropertyChanged events for item types that
-                    // do not implement INotifyPropertyChanged.
-                    props.Add(new EditableObjectPropertyDescriptor<T>(pd, new PropertyChangedEventHandler(ItemPropertyChanged)));
+                    originalProps = originalProps[0].GetChildProperties();
                 }
-                AddProvidedViews(props);
-                return new PropertyDescriptorCollection(props.ToArray());
             }
-            else
+
+            List<PropertyDescriptor> newProps = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor pd in originalProps)
             {
-                return originalProps;
+                newProps.Add(pd);
             }
+            foreach (PropertyDescriptor pd in GetProvidedViews(originalProps))
+            {
+                newProps.Add(pd);                
+            }
+            return new PropertyDescriptorCollection(newProps.ToArray());
         }
 
         protected internal bool ShouldProvideView(PropertyDescriptor property)
@@ -1770,7 +1753,7 @@ namespace Equin.ApplicationFramework
             return viewType;
         }
 
-        private void AddProvidedViews(List<PropertyDescriptor> properties)
+        private IEnumerable<PropertyDescriptor> GetProvidedViews(PropertyDescriptorCollection properties)
         {
             int count = properties.Count;
             for (int i = 0; i < count; i++)
@@ -1778,7 +1761,7 @@ namespace Equin.ApplicationFramework
                 if (ShouldProvideView(properties[i]))
                 {
                     string name = GetProvidedViewName(properties[i]);
-                    properties.Add(new ProvidedViewPropertyDescriptor<T>(name, GetProvidedViewType(properties[i])));
+                    yield return new ProvidedViewPropertyDescriptor<T>(name, GetProvidedViewType(properties[i]));
                 }
             }
         }
@@ -1808,23 +1791,12 @@ namespace Equin.ApplicationFramework
         /// </remarks>
         public ListSortDescription CreateListSortDescription(string propertyName, ListSortDirection direction)
         {
-            PropertyDescriptor pd = GetEditableObjectPropertyDescriptor(propertyName);
+            PropertyDescriptor pd = GetPropertyDescriptor(propertyName);
             if (pd == null)
             {
                 throw new ArgumentException(string.Format(Properties.Resources.PropertyNotFound, propertyName, typeof(T).FullName), "propertyName");
             }
             return new ListSortDescription(pd, direction);
-        }
-
-        /// <summary>
-        /// Gets a new <see cref="EditableObjectPropertyDescriptor&lt;T&gt;"/> for the given property name.
-        /// The <see cref="System.ComponentModel.PropertyChangedEventHandler"/> delegate is set to our ItemPropertyChanged method.
-        /// </summary>
-        /// <param name="propertyName">The name of a property of <typeparamref name="T"/>.</param>
-        /// <returns>The <see cref="EditableObjectPropertyDescriptor&lt;T&gt;"/>.</returns>
-        private EditableObjectPropertyDescriptor<T> GetEditableObjectPropertyDescriptor(string propertyName)
-        {
-            return new EditableObjectPropertyDescriptor<T>(GetPropertyDescriptor(propertyName), new PropertyChangedEventHandler(ItemPropertyChanged));
         }
 
         /// <summary>
@@ -1841,7 +1813,7 @@ namespace Equin.ApplicationFramework
         /// Attaches event handlers to the given <see cref="ObjectView&lt;T&gt;"/>'s 
         /// edit life cycle notification events.
         /// </summary>
-        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to listen to.</param>
+        /// <param name="objectView">The <see cref="ObjectView&lt;T&gt;"/> to listen to.</param>
         private void HookEditableObjectEvents(ObjectView<T> editableObject)
         {
             editableObject.EditBegun += new EventHandler(BegunItemEdit);
@@ -1853,7 +1825,7 @@ namespace Equin.ApplicationFramework
         /// Detaches event handlers from the given <see cref="ObjectView&lt;T&gt;"/>'s 
         /// edit life cycle notification events.
         /// </summary>
-        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to stop listening to.</param>
+        /// <param name="objectView">The <see cref="ObjectView&lt;T&gt;"/> to stop listening to.</param>
         private void UnHookEditableObjectEvents(ObjectView<T> editableObject)
         {
             editableObject.EditBegun -= new EventHandler(BegunItemEdit);
@@ -1864,7 +1836,7 @@ namespace Equin.ApplicationFramework
         /// <summary>
         /// Attaches an event handler to the <see cref="ObjectView&lt;T&gt;"/>'s PropertyChanged event.
         /// </summary>
-        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to listen to.</param>
+        /// <param name="objectView">The <see cref="ObjectView&lt;T&gt;"/> to listen to.</param>
         private void HookPropertyChangedEvent(ObjectView<T> editableObject)
         {
             editableObject.PropertyChanged += new PropertyChangedEventHandler(ItemPropertyChanged);
@@ -1873,7 +1845,7 @@ namespace Equin.ApplicationFramework
         /// <summary>
         /// Detaches the event handler from the <see cref="ObjectView&lt;T&gt;"/>'s PropertyChanged event.
         /// </summary>
-        /// <param name="editableObject">The <see cref="ObjectView&lt;T&gt;"/> to stop listening to.</param>
+        /// <param name="objectView">The <see cref="ObjectView&lt;T&gt;"/> to stop listening to.</param>
         private void UnHookPropertyChangedEvent(ObjectView<T> editableObject)
         {
             editableObject.PropertyChanged -= new PropertyChangedEventHandler(ItemPropertyChanged);
