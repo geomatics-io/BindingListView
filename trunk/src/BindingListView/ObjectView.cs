@@ -149,8 +149,7 @@ namespace Equin.ApplicationFramework
 
         private void CreateProvidedViews()
         {
-            PropertyDescriptorCollection originalProps = (this as ICustomTypeDescriptor).GetProperties();
-            foreach (PropertyDescriptor prop in originalProps)
+            foreach (PropertyDescriptor prop in (this as ICustomTypeDescriptor).GetProperties())
             {
                 if (ShouldProvideViewOf(prop))
                 {

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using System.Collections;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Equin.ApplicationFramework
 {
@@ -477,9 +479,9 @@ namespace Equin.ApplicationFramework
             }
 
             // If we have sorts to apply, do them now
-            if (SortDescriptions.Count > 0)
+            if (_comparer != null)
             {
-                newList.Sort(new SortComparer(SortDescriptions));
+                newList.Sort(_comparer);
             }
 
             // Now we can append any new items to the end of the view.
@@ -1026,6 +1028,21 @@ namespace Equin.ApplicationFramework
             OnListChanged(ListChangedType.Reset, -1);
         }
 
+        public void ApplySort(Comparison<T> comparison)
+        {
+            if (comparison == null)
+            {
+                throw new ArgumentNullException("comparison");
+            }
+
+            // Clear any current sorts
+            _sorts = new ListSortDescriptionCollection();
+            // Sort with this new comparer
+            _comparer = new ExternalSortComparison<T>(comparison);
+            FilterAndSort();
+            OnListChanged(ListChangedType.Reset, -1);
+        }
+
         /// <summary>
         /// Removes any sort currently applied to the view, restoring it to the order of the source list.
         /// </summary>
@@ -1182,7 +1199,7 @@ namespace Equin.ApplicationFramework
                     // Get the two values to compare.
                     object valueX = sort.PropertyDescriptor.GetValue(x.Key.Item);
                     object valueY = sort.PropertyDescriptor.GetValue(y.Key.Item);
-                    
+
                     // Special treatment of nulls
                     if (valueX == null && valueY == null)
                     {
@@ -1272,6 +1289,21 @@ namespace Equin.ApplicationFramework
             public int Compare(KeyValuePair<ListItemPair<U>, int> x, KeyValuePair<ListItemPair<U>, int> y)
             {
                 return _comparer.Compare(x.Key.Item.Object, y.Key.Item.Object);
+            }
+        }
+
+        private class ExternalSortComparison<U> : IComparer<KeyValuePair<ListItemPair<U>, int>>
+        {
+            public ExternalSortComparison(Comparison<U> comparison)
+            {
+                _comparison = comparison;
+            }
+
+            private Comparison<U> _comparison;
+
+            public int Compare(KeyValuePair<ListItemPair<U>, int> x, KeyValuePair<ListItemPair<U>, int> y)
+            {
+                return _comparison(x.Key.Item.Object, y.Key.Item.Object);
             }
         }
 
