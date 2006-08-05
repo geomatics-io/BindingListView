@@ -65,9 +65,6 @@ namespace Equin.ApplicationFramework
 
                 SourceLists = new object[] { value };
                 NewItemsList = value;
-
-                FilterAndSort();
-                OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
             }
         }
 

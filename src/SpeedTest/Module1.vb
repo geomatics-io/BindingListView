@@ -5,7 +5,7 @@ Module Module1
     Sub Main()
 
         Dim list As New List(Of Foo)
-        For i As Integer = 1 To 20000
+        For i As Integer = 1 To 200000
             list.Add(New Foo())
         Next
 
@@ -18,21 +18,23 @@ Module Module1
 
         sw.Reset()
         sw.Start()
-        'view.ApplySort(New FooComparer())
-        'view.Sort = "A"
-        view.ApplySort(AddressOf AComp)
+        view.Sort = "A"
         sw.Stop()
-        Console.WriteLine("Sorted BLV " & sw.ElapsedMilliseconds)
+        Console.WriteLine("Sorted BLV using internal code " & sw.ElapsedMilliseconds)
 
         sw.Reset()
+        sw.Start()
+        view.ApplySort(AddressOf AComp)
+        sw.Stop()
+        Console.WriteLine("Sorted BLV using external code " & sw.ElapsedMilliseconds)
 
         Dim dataTable As New DataTable
         dataTable.Columns.Add("A", GetType(Integer))
         dataTable.Columns.Add("B", GetType(String))
-        For i As Integer = 0 To 19999
+        For i As Integer = 1 To 200000
             Dim row As DataRow = dataTable.NewRow()
-            row(0) = list(i).A
-            row(1) = list(i).B
+            row(0) = list(i - 1).A
+            row(1) = list(i - 1).B
             dataTable.Rows.Add(row)
         Next
 
