@@ -1373,7 +1373,7 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T));
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
                 ILGenerator il = dm.GetILGenerator();
 
                 // Get the value of the first object's property.
@@ -1409,7 +1409,7 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T));
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
                 ILGenerator il = dm.GetILGenerator();
 
                 // Get the value of the first object's property.
