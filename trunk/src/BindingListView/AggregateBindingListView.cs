@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Diagnostics;
 
 namespace Equin.ApplicationFramework
 {
@@ -1170,11 +1171,13 @@ namespace Equin.ApplicationFramework
         }
 
         /// <summary>
-        /// Used to comparer items in the view when sorting the _sourceIndices list.
+        /// Used to compare items in the view when sorting the _sourceIndices list.
         /// It supports mutliple sorts by different properties and directions.
         /// </summary>
         private class SortComparer : IComparer<KeyValuePair<ListItemPair<T>, int>>
         {
+            private Dictionary<ListSortDescription, Comparison<T>> _comparisons;
+
             /// <summary>
             /// Creates a new SortComparer that will use the given sorts.
             /// </summary>
@@ -1182,6 +1185,13 @@ namespace Equin.ApplicationFramework
             public SortComparer(ListSortDescriptionCollection sorts)
             {
                 _sorts = sorts;
+
+                // Build the delegates used to compare properties of objects
+                _comparisons = new Dictionary<ListSortDescription, Comparison<T>>();
+                foreach (ListSortDescription sort in sorts)
+                {
+                    _comparisons[sort] = BuildComparison(sort.PropertyDescriptor.Name, sort.SortDirection);
+                }
             }
 
             private ListSortDescriptionCollection _sorts;
@@ -1189,6 +1199,10 @@ namespace Equin.ApplicationFramework
             /// <summary>
             /// Compares two items according to the defined sorts.
             /// </summary>
+            /// <remarks>
+            /// Use of light-weight code generation comparison delegates gives ~10x speed up
+            /// compared to the pure reflection based implementation.
+            /// </remarks>
             /// <param name="x">The first item to compare.</param>
             /// <param name="y">The second item to compare.</param>
             /// <returns>-1 if x &lt; y, 0 if x = y and 1 if x &gt; y.</returns>
@@ -1196,84 +1210,238 @@ namespace Equin.ApplicationFramework
             {
                 foreach (ListSortDescription sort in _sorts)
                 {
-                    // Get the two values to compare.
-                    object valueX = sort.PropertyDescriptor.GetValue(x.Key.Item);
-                    object valueY = sort.PropertyDescriptor.GetValue(y.Key.Item);
+                    int result = _comparisons[sort](x.Key.Item.Object, y.Key.Item.Object);
+                    if (result != 0)
+                    {
+                        return result;
+                    }
+                }
+                return 0;
+            }
 
-                    // Special treatment of nulls
-                    if (valueX == null && valueY == null)
-                    {
-                        // null && null are equal, so no sorting applied here
-                        continue;
-                    }
-                    if (valueX == null && valueY != null)
-                    {
-                        // null < object
-                        if (sort.SortDirection == ListSortDirection.Ascending)
-                        {
-                            return -1;
-                        }
-                        else
-                        {
-                            return 1;
-                        }
-                    }
-                    if (valueX != null && valueY == null)
-                    {
-                        // object > null
-                        if (sort.SortDirection == ListSortDirection.Ascending)
-                        {
-                            return 1;
-                        }
-                        else
-                        {
-                            return -1;
-                        }
-                    }
+            // Old SLOW version of Compare method
+            ///// <summary>
+            ///// Compares two items according to the defined sorts.
+            ///// </summary>
+            ///// <param name="x">The first item to compare.</param>
+            ///// <param name="y">The second item to compare.</param>
+            ///// <returns>-1 if x &lt; y, 0 if x = y and 1 if x &gt; y.</returns>
+            //public int Compare(KeyValuePair<ListItemPair<T>, int> x, KeyValuePair<ListItemPair<T>, int> y)
+            //{
+            //    foreach (ListSortDescription sort in _sorts)
+            //    {
+            //        // Get the two values to compare.
+            //        object valueX = sort.PropertyDescriptor.GetValue(x.Key.Item);
+            //        object valueY = sort.PropertyDescriptor.GetValue(y.Key.Item);
 
-                    // valueX and valueY are of the same type so if valueX is comparable then so is valueY.
-                    if (valueX is IComparable)
+            //        // Special treatment of nulls
+            //        if (valueX == null && valueY == null)
+            //        {
+            //            // null && null are equal, so no sorting applied here
+            //            continue;
+            //        }
+            //        if (valueX == null && valueY != null)
+            //        {
+            //            // null < object
+            //            if (sort.SortDirection == ListSortDirection.Ascending)
+            //            {
+            //                return -1;
+            //            }
+            //            else
+            //            {
+            //                return 1;
+            //            }
+            //        }
+            //        if (valueX != null && valueY == null)
+            //        {
+            //            // object > null
+            //            if (sort.SortDirection == ListSortDirection.Ascending)
+            //            {
+            //                return 1;
+            //            }
+            //            else
+            //            {
+            //                return -1;
+            //            }
+            //        }
+
+            //        // valueX and valueY are of the same type so if valueX is comparable then so is valueY.
+            //        if (valueX is IComparable)
+            //        {
+            //            int compare = ((IComparable)valueX).CompareTo(valueY);
+            //            if (compare < 0)
+            //            {
+            //                if (sort.SortDirection == ListSortDirection.Ascending)
+            //                {
+            //                    return -1;
+            //                }
+            //                else
+            //                {
+            //                    return 1;
+            //                }
+            //            }
+            //            else if (compare > 0)
+            //            {
+            //                if (sort.SortDirection == ListSortDirection.Ascending)
+            //                {
+            //                    return 1;
+            //                }
+            //                else
+            //                {
+            //                    return -1;
+            //                }
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (valueX.Equals(valueY))
+            //            {
+            //                return 0;
+            //            }
+            //            else
+            //            {
+            //                // Last resort.
+            //                // Try to compare their string representations
+            //                return valueX.ToString().CompareTo(valueY.ToString());
+            //            }
+            //        }
+            //    }
+            //    // Exhausted all sort criteria, so objects must be equal (under this sort).
+            //    return 0;
+            //}
+
+            private static Comparison<T> BuildComparison(string propertyName, ListSortDirection direction)
+            {
+                PropertyInfo pi = typeof(T).GetProperty(propertyName);
+                Debug.Assert(pi != null, string.Format("Property '{0}' is not a member of type '{1}'", propertyName, typeof(T).FullName));
+
+                if (typeof(IComparable).IsAssignableFrom(pi.PropertyType))
+                {
+                    if (pi.PropertyType.IsValueType)
                     {
-                        int compare = ((IComparable)valueX).CompareTo(valueY);
-                        if (compare < 0)
-                        {
-                            if (sort.SortDirection == ListSortDirection.Ascending)
-                            {
-                                return -1;
-                            }
-                            else
-                            {
-                                return 1;
-                            }
-                        }
-                        else if (compare > 0)
-                        {
-                            if (sort.SortDirection == ListSortDirection.Ascending)
-                            {
-                                return 1;
-                            }
-                            else
-                            {
-                                return -1;
-                            }
-                        }
+                        return BuildValueTypeComparison(pi, direction);
                     }
                     else
                     {
-                        if (valueX.Equals(valueY))
+                        Comparison<T> comp = BuildRefTypeComparison(pi, direction);
+                        return delegate(T o1, T o2)
+                        {
+                            int result;
+                            if (o1.Equals(default(T)) && o2.Equals(default(T)))
+                            {
+                                result = 0;
+                            }
+                            else if (o1.Equals(default(T)) && !o2.Equals(default(T)))
+                            {
+                                result = -1;
+                            }
+                            else if (!o1.Equals(default(T)) && o2.Equals(default(T)))
+                            {
+                                result = 1;
+                            }
+                            else
+                            {
+                                return comp(o1, o2);
+                            }
+
+                            if (direction == ListSortDirection.Descending)
+                            {
+                                result *= -1;
+                            }
+                            return result;
+                        };
+                    }
+                }
+                else
+                {
+                    return delegate(T o1, T o2)
+                    {
+                        if (o1.Equals(o2))
                         {
                             return 0;
                         }
                         else
                         {
-                            // Last resort.
-                            // Try to compare their string representations
-                            return valueX.ToString().CompareTo(valueY.ToString());
+                            return o1.ToString().CompareTo(o2.ToString());
                         }
-                    }
+                    };
                 }
-                // Exhausted all sort criteria, so objects must be equal (under this sort).
-                return 0;
+            }
+
+            private static Comparison<T> BuildRefTypeComparison(PropertyInfo pi, ListSortDirection direction)
+            {
+                MethodInfo getMethod = pi.GetGetMethod();
+                Debug.Assert(getMethod != null);
+
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T));
+                ILGenerator il = dm.GetILGenerator();
+
+                // Get the value of the first object's property.
+                il.Emit(OpCodes.Ldarg_0);
+                il.EmitCall(OpCodes.Call, getMethod, null);
+                
+                // Get the value of the second object's property.
+                il.Emit(OpCodes.Ldarg_1);
+                il.EmitCall(OpCodes.Call, getMethod, null);
+
+                // Cast the first value to IComparable and call CompareTo,
+                // passing the second value as the argument.
+                il.Emit(OpCodes.Castclass, typeof(IComparable));
+                il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
+
+                // If descending then multiply comparison result by -1
+                // to reverse the ordering.
+                if (direction == ListSortDirection.Descending)
+                {
+                    il.Emit(OpCodes.Ldc_I4_M1);
+                    il.Emit(OpCodes.Mul);
+                }
+
+                // Return the result of the comparison.
+                il.Emit(OpCodes.Ret);
+
+                // Create the delegate pointing at the dynamic method.
+                return (Comparison<T>)dm.CreateDelegate(typeof(Comparison<T>));
+            }
+
+            private static Comparison<T> BuildValueTypeComparison(PropertyInfo pi, ListSortDirection direction)
+            {
+                MethodInfo getMethod = pi.GetGetMethod();
+                Debug.Assert(getMethod != null);
+
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T));
+                ILGenerator il = dm.GetILGenerator();
+
+                // Get the value of the first object's property.
+                il.Emit(OpCodes.Ldarg_0);
+                il.EmitCall(OpCodes.Call, getMethod, null);
+                // Box the value type
+                il.Emit(OpCodes.Box, pi.PropertyType);
+                
+                // Get the value of the second object's property.
+                il.Emit(OpCodes.Ldarg_1);
+                il.EmitCall(OpCodes.Call, getMethod, null);
+                // Box the value type
+                il.Emit(OpCodes.Box, pi.PropertyType);
+
+                // Cast the first value to IComparable and call CompareTo,
+                // passing the second value as the argument.
+                il.Emit(OpCodes.Castclass, typeof(IComparable));
+                il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
+
+                // If descending then multiply comparison result by -1
+                // to reverse the ordering.
+                if (direction == ListSortDirection.Descending)
+                {
+                    il.Emit(OpCodes.Ldc_I4_M1);
+                    il.Emit(OpCodes.Mul);
+                }
+
+                // Return the result of the comparison.
+                il.Emit(OpCodes.Ret);
+
+                // Create the delegate pointing at the dynamic method.
+                return (Comparison<T>)dm.CreateDelegate(typeof(Comparison<T>));
             }
         }
 
