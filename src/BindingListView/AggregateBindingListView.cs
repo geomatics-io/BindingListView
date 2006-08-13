@@ -1323,21 +1323,21 @@ namespace Equin.ApplicationFramework
                     }
                     else
                     {
-                        Comparison<T> comp = BuildRefTypeComparison(pi, direction);
+                        GetPropertyDelegate getProperty = BuildGetPropertyMethod(pi);
                         return delegate(T x, T y)
                         {
-                            object o1 = (object)x;
-                            object o2 = (object)y;
                             int result;
-                            if (o1 != null && o2 != null)
+                            object value1 = getProperty(x);
+                            object value2 = getProperty(y);
+                            if (value1 != null && value2 != null)
                             {
-                                return comp(x, y);
+                                result = (value1 as IComparable).CompareTo(value2);
                             }
-                            else if (o1 == null && o2 != null)
+                            else if (value1 == null && value2 != null)
                             {
                                 result = -1;
                             }
-                            else if (o1 != null && o2 == null)
+                            else if (value1 != null && value2 == null)
                             {
                                 result = 1;
                             }
@@ -1345,7 +1345,7 @@ namespace Equin.ApplicationFramework
                             {
                                 result = 0;
                             }
-
+                        
                             if (direction == ListSortDirection.Descending)
                             {
                                 result *= -1;
@@ -1370,6 +1370,26 @@ namespace Equin.ApplicationFramework
                 }
             }
 
+            private delegate object GetPropertyDelegate(T obj);
+
+            private static GetPropertyDelegate BuildGetPropertyMethod(PropertyInfo pi)
+            {
+                MethodInfo getMethod = pi.GetGetMethod();
+                Debug.Assert(getMethod != null);
+
+                DynamicMethod dm = new DynamicMethod("__blw_get_" + pi.Name, typeof(object), new Type[] { typeof(T) }, typeof(T), true);
+                ILGenerator il = dm.GetILGenerator();
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.EmitCall(OpCodes.Call, getMethod, null);
+
+                // Return the result of the comparison.
+                il.Emit(OpCodes.Ret);
+
+                // Create the delegate pointing at the dynamic method.
+                return (GetPropertyDelegate)dm.CreateDelegate(typeof(GetPropertyDelegate));
+            }
+
             private static Comparison<T> BuildRefTypeComparison(PropertyInfo pi, ListSortDirection direction)
             {
                 MethodInfo getMethod = pi.GetGetMethod();
@@ -1390,7 +1410,7 @@ namespace Equin.ApplicationFramework
                 // passing the second value as the argument.
                 il.Emit(OpCodes.Castclass, typeof(IComparable));
                 il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
-
+                
                 // If descending then multiply comparison result by -1
                 // to reverse the ordering.
                 if (direction == ListSortDirection.Descending)
