@@ -1324,24 +1324,26 @@ namespace Equin.ApplicationFramework
                     else
                     {
                         Comparison<T> comp = BuildRefTypeComparison(pi, direction);
-                        return delegate(T o1, T o2)
+                        return delegate(T x, T y)
                         {
+                            object o1 = (object)x;
+                            object o2 = (object)y;
                             int result;
-                            if (o1.Equals(default(T)) && o2.Equals(default(T)))
+                            if (o1 != null && o2 != null)
                             {
-                                result = 0;
+                                return comp(x, y);
                             }
-                            else if (o1.Equals(default(T)) && !o2.Equals(default(T)))
+                            else if (o1 == null && o2 != null)
                             {
                                 result = -1;
                             }
-                            else if (!o1.Equals(default(T)) && o2.Equals(default(T)))
+                            else if (o1 != null && o2 == null)
                             {
                                 result = 1;
                             }
                             else
                             {
-                                return comp(o1, o2);
+                                result = 0;
                             }
 
                             if (direction == ListSortDirection.Descending)
