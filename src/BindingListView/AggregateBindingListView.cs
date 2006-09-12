@@ -1345,7 +1345,7 @@ namespace Equin.ApplicationFramework
                             {
                                 result = 0;
                             }
-                        
+
                             if (direction == ListSortDirection.Descending)
                             {
                                 result *= -1;
@@ -1353,6 +1353,10 @@ namespace Equin.ApplicationFramework
                             return result;
                         };
                     }
+                }
+                else if (pi.PropertyType.IsGenericType && pi.PropertyType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                {
+                    return BuildNullableComparison(pi, direction);
                 }
                 else
                 {
@@ -1401,7 +1405,7 @@ namespace Equin.ApplicationFramework
                 // Get the value of the first object's property.
                 il.Emit(OpCodes.Ldarg_0);
                 il.EmitCall(OpCodes.Call, getMethod, null);
-                
+
                 // Get the value of the second object's property.
                 il.Emit(OpCodes.Ldarg_1);
                 il.EmitCall(OpCodes.Call, getMethod, null);
@@ -1410,7 +1414,7 @@ namespace Equin.ApplicationFramework
                 // passing the second value as the argument.
                 il.Emit(OpCodes.Castclass, typeof(IComparable));
                 il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
-                
+
                 // If descending then multiply comparison result by -1
                 // to reverse the ordering.
                 if (direction == ListSortDirection.Descending)
@@ -1439,7 +1443,7 @@ namespace Equin.ApplicationFramework
                 il.EmitCall(OpCodes.Call, getMethod, null);
                 // Box the value type
                 il.Emit(OpCodes.Box, pi.PropertyType);
-                
+
                 // Get the value of the second object's property.
                 il.Emit(OpCodes.Ldarg_1);
                 il.EmitCall(OpCodes.Call, getMethod, null);
@@ -1450,6 +1454,42 @@ namespace Equin.ApplicationFramework
                 // passing the second value as the argument.
                 il.Emit(OpCodes.Castclass, typeof(IComparable));
                 il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
+
+                // If descending then multiply comparison result by -1
+                // to reverse the ordering.
+                if (direction == ListSortDirection.Descending)
+                {
+                    il.Emit(OpCodes.Ldc_I4_M1);
+                    il.Emit(OpCodes.Mul);
+                }
+
+                // Return the result of the comparison.
+                il.Emit(OpCodes.Ret);
+
+                // Create the delegate pointing at the dynamic method.
+                return (Comparison<T>)dm.CreateDelegate(typeof(Comparison<T>));
+            }
+
+            private static Comparison<T> BuildNullableComparison(PropertyInfo pi, ListSortDirection direction)
+            {
+                MethodInfo getMethod = pi.GetGetMethod();
+                Debug.Assert(getMethod != null);
+
+                //Type nullableType = typeof(Nullable<>).MakeGenericType(pi.PropertyType.GetGenericArguments()[0]);
+
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
+                ILGenerator il = dm.GetILGenerator();
+
+                // Get the value of the first object's property.
+                il.Emit(OpCodes.Ldarg_0); 
+                il.EmitCall(OpCodes.Call, getMethod, null);
+
+                // Get the value of the second object's property.
+                il.Emit(OpCodes.Ldarg_1);
+                il.EmitCall(OpCodes.Call, getMethod, null);
+                
+                // Call Nullable.Compare
+                il.EmitCall(OpCodes.Call, typeof(Nullable).GetMethod("Compare", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(pi.PropertyType.GetGenericArguments()[0]), null);
 
                 // If descending then multiply comparison result by -1
                 // to reverse the ordering.
