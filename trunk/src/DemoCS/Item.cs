@@ -11,7 +11,7 @@ namespace Demo
     {
         private string _title;
         private string _description;
-        private DateTime _pubDate;
+        private DateTime? _pubDate;
 
         public string Title
         {
@@ -25,7 +25,7 @@ namespace Demo
             set { _description = value; }
         }
         
-        public DateTime PubDate
+        public DateTime? PubDate
         {
             get { return _pubDate; }
             set { _pubDate = value; }
