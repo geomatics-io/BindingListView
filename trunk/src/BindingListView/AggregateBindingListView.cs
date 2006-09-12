@@ -434,15 +434,6 @@ namespace Equin.ApplicationFramework
         /// </summary>
         protected void FilterAndSort()
         {
-            // Since we will actually recreate ObjectView<T> objects for each item
-            // we must first remove any existing event handlers.
-            // Otherwise we will have event handlers trigger more than once!
-            foreach (KeyValuePair<ListItemPair<T>, int> kvp in _sourceIndices)
-            {
-                UnHookEditableObjectEvents(kvp.Key.Item);
-                UnHookPropertyChangedEvent(kvp.Key.Item);
-            }
-
             // The view contains items from the source list
             // and possibly a new items that are not yet committed.
             // Therefore we can't just clear the list and start over
@@ -458,23 +449,34 @@ namespace Equin.ApplicationFramework
                 for (int i = 0; i < sourceList.Count; i++)
                 {
                     T item = (T)sourceList[i];
+                    ObjectView<T> editableObject;
                     if (_filter.Include(item))
                     {
-                        ObjectView<T> editableObject;
-                        if (!_objectViewCache.ContainsKey(item))
+                        if (_objectViewCache.ContainsKey(item))
                         {
-                            editableObject = new ObjectView<T>(item, this);
-                            _objectViewCache.Add(item, editableObject);
+                            editableObject = _objectViewCache[item];                            
                         }
                         else
                         {
-                            editableObject = _objectViewCache[item];
+                            editableObject = new ObjectView<T>(item, this);
+                            _objectViewCache.Add(item, editableObject);
+                            // Listen to the editing notification and property changed events.
+                            HookEditableObjectEvents(editableObject);
+                            HookPropertyChangedEvent(editableObject);
                         }
-                        // And listen to the editing notification and property changed events.
-                        HookEditableObjectEvents(editableObject);
-                        HookPropertyChangedEvent(editableObject);
+                        
                         // Add the editable object along with the index of the item in the source list.
                         newList.Add(sourceList, editableObject, i);
+                    }
+                    else
+                    {
+                        if (_objectViewCache.ContainsKey(item))
+                        {
+                            editableObject = _objectViewCache[item];
+                            UnHookEditableObjectEvents(editableObject);
+                            UnHookPropertyChangedEvent(editableObject);
+                            _objectViewCache.Remove(item);
+                        }
                     }
                 }
             }
@@ -510,7 +512,7 @@ namespace Equin.ApplicationFramework
         /// Currently unused. Here in case we want to perform actions when
         /// an item edit begins.
         /// </remarks>
-        private void BegunItemEdit(object sender, EventArgs e)
+        protected virtual void BegunItemEdit(object sender, EventArgs e)
         {
             
         }
@@ -519,7 +521,7 @@ namespace Equin.ApplicationFramework
         /// Currently unused. Here in case we want to perform actions when
         /// an item edit is cancelled.
         /// </remarks>
-        private void CancelledItemEdit(object sender, EventArgs e)
+        protected virtual void CancelledItemEdit(object sender, EventArgs e)
         {
             
         }
@@ -528,7 +530,7 @@ namespace Equin.ApplicationFramework
         /// Handles the <see cref="ObjectView&lt;T&gt;"/> EndedEdit event.
         /// </summary>
         /// <param name="sender">The <see cref="ObjectView&lt;T&gt;"/> that raised the event.</param>
-        private void EndedItemEdit(object sender, EventArgs e)
+        protected virtual void EndedItemEdit(object sender, EventArgs e)
         {
             ObjectView<T> editableObject = (ObjectView<T>)sender;
             
