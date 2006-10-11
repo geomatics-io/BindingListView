@@ -59,19 +59,16 @@ namespace Equin.ApplicationFramework
             return false;
         }
 
+        /// <summary>
+        /// Gets if a BindingListView can be provided for given property. 
+        /// The property type must implement IList&lt;&gt; i.e. some generic IList.
+        /// </summary>
         public static bool CanProvideViewOf(PropertyDescriptor prop)
         {
-            Type listTypeDef = typeof(IList<object>).GetGenericTypeDefinition();
             Type propType = prop.PropertyType;
-            Type[] args = propType.GetGenericArguments();
-            // Is this a generic type, with only one generic parameter.
-            if (args.Length == 1)
+            foreach (Type interfaceType in propType.GetInterfaces())
             {
-                // Create type IList<T> where T is args[0]
-                Type listType = listTypeDef.MakeGenericType(args);
-                // Check if the property type implements IList<T>
-                // but is not an IBindingListView (or better).
-                if (listType.IsAssignableFrom(propType) && !typeof(IBindingListView).IsAssignableFrom(propType))
+                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition().Equals(typeof(IList<>)))
                 {
                     return true;
                 }

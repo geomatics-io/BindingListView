@@ -2011,8 +2011,20 @@ namespace Equin.ApplicationFramework
 
         private static Type GetProvidedViewType(PropertyDescriptor sourceListProperty)
         {
-            Type viewTypeDef = typeof(BindingListView<object>).GetGenericTypeDefinition();
-            Type typeParam = sourceListProperty.PropertyType.GetGenericArguments()[0];
+            // The source list property type implements IList<X>.
+            // We want to get the type of X.
+            Type typeParam = null;
+            foreach (Type interfaceType in sourceListProperty.PropertyType.GetInterfaces())
+            {
+                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition().Equals(typeof(IList<>)))
+                {
+                    typeParam = interfaceType.GetGenericArguments()[0];
+                }
+            }
+            Debug.Assert(typeParam != null, "Did not get the generic argument for type " + sourceListProperty.PropertyType.FullName);
+
+            // Now build the BindingListView<X> type.
+            Type viewTypeDef = typeof(BindingListView<>);
             Type viewType = viewTypeDef.MakeGenericType(typeParam);
             return viewType;
         }
