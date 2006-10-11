@@ -411,38 +411,26 @@ namespace Equin.ApplicationFramework
 
         EventDescriptorCollection ICustomTypeDescriptor.GetEvents()
         {
-            if (_isCustomTypeDescriptor)
-            {
-                return _customTypeDescriptor.GetEvents();
-            }
-            else
-            {
-                return TypeDescriptor.GetEvents(Object);
-            }
+            return (this as ICustomTypeDescriptor).GetEvents(null);
         }
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
         {
+            List<PropertyDescriptor> props;
             if (_isCustomTypeDescriptor)
             {
-                return _customTypeDescriptor.GetProperties();
+                props = new List<PropertyDescriptor>(_parent.AddProvidedViews(_customTypeDescriptor.GetProperties(attributes)));
             }
             else
             {
-                return TypeDescriptor.GetProperties(Object, attributes);
+                props = new List<PropertyDescriptor>(_parent.AddProvidedViews(TypeDescriptor.GetProperties(Object, attributes)));
             }
+            return new PropertyDescriptorCollection(props.ToArray());
         }
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
         {
-            if (_isCustomTypeDescriptor)
-            {
-                return _customTypeDescriptor.GetProperties();
-            }
-            else
-            {
-                return TypeDescriptor.GetProperties(Object);
-            }
+            return (this as ICustomTypeDescriptor).GetProperties(null);
         }
 
         object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)

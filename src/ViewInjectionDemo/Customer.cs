@@ -14,7 +14,7 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
         public Customer(string name)
         {
             _name = name;
-            _orders = new List<Order>();
+            _orders = new OrderList();
         }
 
         private string _name;
@@ -25,12 +25,16 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
             set { _name = value; }
         }
 
-        private List<Order> _orders;
+        private OrderList _orders;
 
-        public List<Order> Orders
+        public OrderList Orders
         {
             get { return _orders; }
         }
 
+    }
+
+    class OrderList : List<Order>
+    {
     }
 }

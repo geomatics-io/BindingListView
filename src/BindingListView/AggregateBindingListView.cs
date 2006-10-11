@@ -1981,14 +1981,11 @@ namespace Equin.ApplicationFramework
             }
 
             List<PropertyDescriptor> newProps = new List<PropertyDescriptor>();
-            foreach (PropertyDescriptor pd in originalProps)
+            foreach (PropertyDescriptor pd in AddProvidedViews(originalProps))
             {
                 newProps.Add(pd);
             }
-            foreach (PropertyDescriptor pd in GetProvidedViews(originalProps))
-            {
-                newProps.Add(pd);                
-            }
+            
             return new PropertyDescriptorCollection(newProps.ToArray());
         }
 
@@ -2029,16 +2026,16 @@ namespace Equin.ApplicationFramework
             return viewType;
         }
 
-        private IEnumerable<PropertyDescriptor> GetProvidedViews(PropertyDescriptorCollection properties)
+        internal IEnumerable<PropertyDescriptor> AddProvidedViews(PropertyDescriptorCollection properties)
         {
-            int count = properties.Count;
-            for (int i = 0; i < count; i++)
+            foreach (PropertyDescriptor prop in properties)
             {
-                if (ShouldProvideView(properties[i]))
+                if (ShouldProvideView(prop))
                 {
-                    string name = GetProvidedViewName(properties[i]);
-                    yield return new ProvidedViewPropertyDescriptor<T>(name, GetProvidedViewType(properties[i]));
+                    string name = GetProvidedViewName(prop);
+                    yield return new ProvidedViewPropertyDescriptor<T>(name, GetProvidedViewType(prop));
                 }
+                yield return prop;
             }
         }
 
