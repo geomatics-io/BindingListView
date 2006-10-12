@@ -22,7 +22,7 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
             // Change the orders binding source to use the auto provided view
             // instead of the normal list.
             ordersBindingSource.DataMember = "OrdersView";
-
+            detailsBindingSource.DataMember = "DetailsView";
         }
 
         private BindingList<Customer> GetCustomers()

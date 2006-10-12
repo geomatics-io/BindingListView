@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
 {
@@ -6,7 +7,7 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
     {
         public Order()
         {
-            _details = string.Empty;
+            _details = new List<OrderDetail>();
         }
 
         private int _id;
@@ -17,13 +18,29 @@ namespace Equin.ApplicationFramework.Demos.ViewInjectionDemo
             set { _id = value; }
         }
 
-        private string _details;
+        private List<OrderDetail> _details;
 
-        public string Details
+        public List<OrderDetail> Details
         {
             get { return _details; }
-            set { _details = value; }
         }
 
+    }
+
+    class OrderDetail
+    {
+        public OrderDetail()
+        {
+            _message = string.Empty;
+        }
+
+        private string _message;
+
+        public string Message
+        {
+            get { return _message; }
+            set { _message = value; }
+        }
+        
     }
 }
