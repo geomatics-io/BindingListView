@@ -2028,12 +2028,18 @@ namespace Equin.ApplicationFramework
 
         internal IEnumerable<PropertyDescriptor> AddProvidedViews(PropertyDescriptorCollection properties)
         {
+            if (properties.Count < 0)
+            {
+                yield break;
+            }
+            Type componentType = properties[0].ComponentType;
+            Type propDescType = typeof(ProvidedViewPropertyDescriptor<>).MakeGenericType(componentType);
             foreach (PropertyDescriptor prop in properties)
             {
                 if (ShouldProvideView(prop))
                 {
                     string name = GetProvidedViewName(prop);
-                    yield return new ProvidedViewPropertyDescriptor<T>(name, GetProvidedViewType(prop));
+                    yield return (PropertyDescriptor)Activator.CreateInstance(propDescType, name, GetProvidedViewType(prop));
                 }
                 yield return prop;
             }
