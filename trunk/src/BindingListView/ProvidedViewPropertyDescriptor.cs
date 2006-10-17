@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Equin.ApplicationFramework
 {
-    class ProvidedViewPropertyDescriptor<T> : PropertyDescriptor
+    class ProvidedViewPropertyDescriptor : PropertyDescriptor
     {
         public ProvidedViewPropertyDescriptor(string name, Type propertyType)
             : base(name, null)
@@ -21,14 +21,14 @@ namespace Equin.ApplicationFramework
 
         public override Type ComponentType
         {
-            get { return typeof(ObjectView<T>); }
+            get { return typeof(IProvideViews); }
         }
 
         public override object GetValue(object component)
         {
-            if (ComponentType.IsAssignableFrom(component.GetType()))
+            if (component is IProvideViews)
             {
-                return (component as ObjectView<T>).GetProvidedView(Name);
+                return (component as IProvideViews).GetProvidedView(Name);
             }
 
             throw new ArgumentException("Type of component is not valid.", "component");
