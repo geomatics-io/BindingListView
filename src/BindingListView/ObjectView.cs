@@ -17,7 +17,7 @@ namespace Equin.ApplicationFramework
     /// </remarks>
     /// <typeparam name="T">The type of object being viewed.</typeparam>
     [Serializable]
-    public class ObjectView<T> : INotifyingEditableObject, IDataErrorInfo, INotifyPropertyChanged, ICustomTypeDescriptor
+    public class ObjectView<T> : INotifyingEditableObject, IDataErrorInfo, INotifyPropertyChanged, ICustomTypeDescriptor, IProvideViews
     {
         /// <summary>
         /// Creates a new <see cref="ObjectView&ltT&gt;"/> wrapper for a <typeparamref name="T"/> object.
@@ -447,4 +447,10 @@ namespace Equin.ApplicationFramework
 
         #endregion
     }
+
+    public interface IProvideViews
+    {
+        object GetProvidedView(string name);
+    }
+
 }

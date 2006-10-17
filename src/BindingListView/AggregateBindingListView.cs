@@ -1991,7 +1991,7 @@ namespace Equin.ApplicationFramework
 
         protected internal bool ShouldProvideView(PropertyDescriptor property)
         {
-            return ProvidedViewPropertyDescriptor<T>.CanProvideViewOf(property);
+            return ProvidedViewPropertyDescriptor.CanProvideViewOf(property);
         }
 
         protected internal string GetProvidedViewName(PropertyDescriptor sourceListProperty)
@@ -2032,14 +2032,12 @@ namespace Equin.ApplicationFramework
             {
                 yield break;
             }
-            Type componentType = properties[0].ComponentType;
-            Type propDescType = typeof(ProvidedViewPropertyDescriptor<>).MakeGenericType(componentType);
             foreach (PropertyDescriptor prop in properties)
             {
                 if (ShouldProvideView(prop))
                 {
                     string name = GetProvidedViewName(prop);
-                    yield return (PropertyDescriptor)Activator.CreateInstance(propDescType, name, GetProvidedViewType(prop));
+                    yield return new ProvidedViewPropertyDescriptor(name, GetProvidedViewType(prop));
                 }
                 yield return prop;
             }
