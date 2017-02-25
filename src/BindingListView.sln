@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BindingListView", "BindingListView\BindingListView.csproj", "{75AF36A8-7797-4023-B183-5B63D448420A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewInjectionDemo", "ViewInjectionDemo\ViewInjectionDemo.csproj", "{DA8AA4E1-DC26-4DA2-BB3D-3AC78EAF2EA4}"
