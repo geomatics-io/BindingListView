@@ -1,5 +1,13 @@
 # BindingListView
 
+## Information
+
+This is a fork of Andrew Daveys [BindingListView](http://blw.sourceforge.net). It was upgraded to .NET 4.x and changes and fixes have been applied. 
+
+The library is available from the public geomatics.io [myget](http://www.myget.org) feed:
+
+https://www.myget.org/feed/geomatics/package/nuget/Equin.ApplicationFramework.BindingListView
+
 ## Introduction
 
 The BindingListView .NET library provides a type-safe, sortable, filterable, data-bindable view of one or more lists of objects. It is the business objects equivalent of using a DataView on a DataTable in ADO.NET. If you have a list of objects to display on a Windows Forms UI (e.g. in a DataGridView) and want to allow your user to sort and filter, then this is the library to use!
