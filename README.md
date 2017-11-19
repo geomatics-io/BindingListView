@@ -1,8 +1,7 @@
-# BindingListView
+# BindingListView #
+2006 [Andrew Davies](http://aboutcode.net/) created an excellent little class on [SourceForge](http://blw.sourceforge.net/) called `BindingListView<T>` which essentially allows you to bind a collection to a `DataGridView` while supporting sorting and filtering. Binding a `DataGridView` to a normal `List<T>` does not support sorting and filtering, as the proper interfaces are not implemented by `List<T>`.
 
-## Information
-
-This is a fork of Andrew Daveys [BindingListView](http://blw.sourceforge.net). It was upgraded to .NET 4.x and changes and fixes have been applied. 
+The class works great. However, it would have been awesome if one could iterate through the collection using LINQ. **This fork updates BindingListView to .NET 4.0 and enables LINQ functionality based on an answer from [Rick Sladkey](http://stackoverflow.com/users/553613/rick-sladkey) on [Stack Overflow](http://stackoverflow.com/questions/6256559/enabling-linq-for-bindinglistviewt).**
 
 The library is available from the public geomatics.io [myget](http://www.myget.org) feed:
 
@@ -18,7 +17,7 @@ For those who like to dive straight into the code, the source is available from 
 If you just want to use the library download the compiled DLL.
 Check out the [SourceForge project page](http://www.sf.net/projects/blw) for forums, help, etc.
 
-The library makes use of generics and so only works with the .NET 2.0 runtime. It should work with any .NET language: C#, VB.NET, etc.
+The library makes use of generics and so only works with the .NET 4.0 runtime. It should work with any .NET language: C#, VB.NET, etc.
 
 ## Quick-start Guide
 
@@ -49,6 +48,15 @@ Function BalanceFilter(ByVal customer as Customer) as Boolean
 End Function
 ```
 A filter will not actually remove items from the source list, they are just not visible when bound to a grid for example.
+
+## Enabling LINQ for BindingListView<T> ##
+You can use LINQ directly on a `BindingListView<T>` instance like this:
+
+```C#
+// Create a view of the items
+itemsView = new BindingListView<Item>(feed.Items);
+var descriptions = itemsView.Select(t => t.Description);
+```
 
 ## An Important Detail
 
