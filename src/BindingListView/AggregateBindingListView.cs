@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Equin.ApplicationFramework
 {
-    public class AggregateBindingListView<T> : Component, IBindingListView, IList, IRaiseItemChangedEvents, ICancelAddNew, ITypedList
+    public class AggregateBindingListView<T> : Component, IBindingListView, IList, IRaiseItemChangedEvents, ICancelAddNew, ITypedList, IEnumerable<T>
     {
         #region Constructors
 
@@ -1984,14 +1984,23 @@ namespace Equin.ApplicationFramework
 
         #endregion
 
-        #region ITypedList Members
+        #region IEnumerable<T> Members
+        
+          IEnumerator<T> IEnumerable<T>.GetEnumerator()
+          {
+            for (int i = 0; i<_sourceIndices.Count; i++)
+                 yield return _sourceIndices[i].Key.Item.Object;
+          }
+         #endregion
 
-        /// <summary>
-        /// Returns the <see cref="System.ComponentModel.PropertyDescriptorCollection"/> that represents the properties on each item used to bind data.
-        /// </summary>
-        /// <param name="listAccessors">Array of property descriptors to navigate object hirerachy to actual item object. It can be null.</param>
-        /// <returns>The System.ComponentModel.PropertyDescriptorCollection that represents the properties on each item used to bind data.</returns>
-        PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
+    #region ITypedList Members
+
+    /// <summary>
+    /// Returns the <see cref="System.ComponentModel.PropertyDescriptorCollection"/> that represents the properties on each item used to bind data.
+    /// </summary>
+    /// <param name="listAccessors">Array of property descriptors to navigate object hirerachy to actual item object. It can be null.</param>
+    /// <returns>The System.ComponentModel.PropertyDescriptorCollection that represents the properties on each item used to bind data.</returns>
+    PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
             PropertyDescriptorCollection originalProps;
             
