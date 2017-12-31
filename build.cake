@@ -58,7 +58,6 @@ Task("Run-Unit-Tests")
 });
 
 Task("BuildPackages")
-    .IsDependentOn("Restore-NuGet-Packages")
     .IsDependentOn("Run-Unit-Tests")
     .Does(() =>
 {
@@ -81,7 +80,7 @@ Task("BuildPackages")
 //////////////////////////////////////////////////////////////////////
 
 Task("Default")
-    .IsDependentOn("Run-Unit-Tests");
+    .IsDependentOn("BuildPackages");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
