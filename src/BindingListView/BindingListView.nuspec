@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Equin.ApplicationFramework.BindingListView</id>
+    <version>$version$</version>
+    <title>BindingListView</title>
+    <authors>Andrew Davey, Christian Junk</authors>
+    <owners>Christian Junk</owners>
+    <projectUrl>https://github.com/geomatics-io/BindingListView</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Sort, filter and aggregate lists of business objects without all the boring code! This library provides a powerful "view" approach to data binding .NET objects to user interface controls.</description>
+    <copyright>Copyright 2017</copyright>
+    <tags>csharp csharp-library dotnet winforms datagridview sort filter</tags>
+    <dependencies />
+  </metadata>
+</package>

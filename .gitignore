@@ -181,3 +181,9 @@ UpgradeLog*.htm
 FakesAssemblies/
 
 *.stackdump
+
+# Cake Build
+tools/*
+!tools/packages.config
+
+artifacts/
