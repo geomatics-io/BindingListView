@@ -3,9 +3,9 @@
 
 The class works great. However, it would have been awesome if one could iterate through the collection using LINQ. **This fork updates BindingListView to .NET 4.0 and enables LINQ functionality based on an answer from [Rick Sladkey](http://stackoverflow.com/users/553613/rick-sladkey) on [Stack Overflow](http://stackoverflow.com/questions/6256559/enabling-linq-for-bindinglistviewt).**
 
-The library is available from the public geomatics.io [myget](http://www.myget.org) feed:
+The library is available from the public geomatics.io [AppVeyor](https://www.appveyor.com/) feed:
 
-https://www.myget.org/feed/geomatics/package/nuget/Equin.ApplicationFramework.BindingListView
+https://ci.appveyor.com/nuget/bindinglistview
 
 ## Introduction
 

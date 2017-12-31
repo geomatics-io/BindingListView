@@ -7,7 +7,7 @@ branches:
   only:
   - master
 build_script:
-- ps: .\build.ps1
+- ps: .\build.ps1 -t BuildPackages
 artifacts:
 - path: artifacts\**\*.nupkg
 notifications:
