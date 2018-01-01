@@ -9,6 +9,10 @@ build_script:
 - ps: .\build.ps1
 artifacts:
 - path: artifacts\**\*.nupkg
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true 
 notifications:
 - provider: Email
   to:
