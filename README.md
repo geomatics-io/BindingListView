@@ -8,6 +8,8 @@ The class works great. However, it would have been awesome if one could iterate 
 
 ## Introduction
 
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/jjmEmyXQ6VE/0.jpg)](http://www.youtube.com/watch?v=jjmEmyXQ6VE "BindingListView Demo")
+
 The BindingListView .NET library provides a type-safe, sortable, filterable, data-bindable view of one or more lists of objects. It is the business objects equivalent of using a DataView on a DataTable in ADO.NET. If you have a list of objects to display on a Windows Forms UI (e.g. in a DataGridView) and want to allow your user to sort and filter, then this is the library to use!
 
 For a demo of what the library can do, [watch](http://blw.sourceforge.net/demo.html) the screen cast.
