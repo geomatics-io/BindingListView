@@ -12,9 +12,7 @@ The BindingListView .NET library provides a type-safe, sortable, filterable, dat
 
 For a demo of what the library can do, [watch](http://blw.sourceforge.net/demo.html) the screen cast.
 
-For those who like to dive straight into the code, the source is available from the SubVersion repository or ZIPed as a release. The source contains a few example projects demonstrating what the library can do.
-If you just want to use the library download the compiled DLL.
-Check out the [SourceForge project page](http://www.sf.net/projects/blw) for forums, help, etc.
+The source contains a few example projects demonstrating what the library can do. Check out the [SourceForge project page](http://www.sf.net/projects/blw) for forums, help, etc.
 
 The library makes use of generics and so only works with the .NET 4.0 runtime. It should work with any .NET language: C#, VB.NET, etc.
 
