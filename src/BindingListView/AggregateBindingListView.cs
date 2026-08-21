@@ -1420,7 +1420,7 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                DynamicMethod dm = new DynamicMethod("__blw_get_" + pi.Name, typeof(object), new Type[] { typeof(T) }, typeof(T), true);
+                DynamicMethod dm = new DynamicMethod("__blw_get_" + pi.Name, typeof(object), new Type[] { typeof(T) }, typeof(T).Module, true);
                 ILGenerator il = dm.GetILGenerator();
 
                 il.Emit(OpCodes.Ldarg_0);
