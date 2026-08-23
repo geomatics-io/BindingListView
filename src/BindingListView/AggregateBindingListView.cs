@@ -1424,7 +1424,7 @@ namespace Equin.ApplicationFramework
                 ILGenerator il = dm.GetILGenerator();
 
                 il.Emit(OpCodes.Ldarg_0);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null); // was OpCodes.Call
 
                 // Return the result of the comparison.
                 il.Emit(OpCodes.Ret);
@@ -1514,7 +1514,7 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                //Type nullableType = typeof(Nullable<>).MakeGenericType(pi.PropertyType.GetGenericArguments()[0]);
+                //Type nullableType = typeof(Nullable<>).MakeGenericType(pi.PropertyType.getGenericArguments()[0]);
 
                 DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
                 ILGenerator il = dm.GetILGenerator();
