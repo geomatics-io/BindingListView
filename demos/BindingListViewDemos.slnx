@@ -2,5 +2,6 @@
   <Project Path="../src/BindingListView/BindingListView.csproj" Id="10a32ee5-1f64-40dc-8864-5c6e97b147eb" />
   <Project Path="DemoCS/DemoCS.csproj" Id="2b6e955e-b74e-406a-bd1c-dc27f2d684df" />
   <Project Path="DemoVB/DemoVB.vbproj" Id="2f6c9fe3-f4d5-4cf0-a2ae-a4f8034fe5b9" />
+  <Project Path="SpeedDemo/SpeedDemo.vbproj" Id="6fda8e00-9fe7-4785-959c-0550eb17adcc" />
   <Project Path="ViewInjectionDemo/ViewInjectionDemo.csproj" Id="da8aa4e1-dc26-4da2-bb3d-3ac78eaf2ea4" />
 </Solution>
