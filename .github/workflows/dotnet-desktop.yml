@@ -44,10 +44,38 @@ jobs:
           name: nuget-package
           path: artifacts/*.nupkg
 
-      # Only runs when the push is a "vX.Y.Z" tag, so ordinary branch pushes and
-      # pull requests just build/pack for verification without publishing.
-      - name: Publish to NuGet.org
+      # Decides whether this tag is allowed to publish: it must be reachable from
+      # (i.e. already merged into) origin/master, and must not be a "-beta" tag
+      # (e.g. v1.4.0-beta or v1.4.0-beta.1). Beta tags and tags pushed only on a
+      # feature/development branch still get built, packed and uploaded as a
+      # workflow artifact above, just not pushed to NuGet.org automatically.
+      - name: Determine release eligibility
+        id: gate
         if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME}"
+
+          on_master=false
+          if git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            on_master=true
+          fi
+
+          is_beta=false
+          if [[ "$tag" == *-beta* ]]; then
+            is_beta=true
+          fi
+
+          publish=false
+          if [[ "$on_master" == true && "$is_beta" == false ]]; then
+            publish=true
+          fi
+
+          echo "tag=$tag on_master=$on_master is_beta=$is_beta publish=$publish"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to NuGet.org
+        if: steps.gate.outputs.publish == 'true'
         run: >
           dotnet nuget push "artifacts/*.nupkg"
           --source https://api.nuget.org/v3/index.json
