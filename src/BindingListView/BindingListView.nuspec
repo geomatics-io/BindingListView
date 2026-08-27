@@ -4,12 +4,12 @@
     <id>Geomatics.IO.BindingListView</id>
     <version>$version$</version>
     <title>BindingListView</title>
-    <authors>Andrew Davey, Christian Junk</authors>
-    <owners>Christian Junk</owners>
+    <authors>Andrew Davey, Christian Arielli</authors>
+    <owners>Christian Arielli, geomatics I/O</owners>
     <projectUrl>https://github.com/geomatics-io/BindingListView</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Sort, filter and aggregate lists of business objects without all the boring code! This library provides a powerful "view" approach to data binding .NET objects to user interface controls.</description>
-    <copyright>Copyright 2017-2018</copyright>
+    <copyright>Copyright 2017-2026</copyright>
     <tags>csharp csharp-library dotnet winforms datagridview sort filter</tags>
     <dependencies />
   </metadata>
