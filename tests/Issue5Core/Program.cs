@@ -4,76 +4,63 @@ using Equin.ApplicationFramework;
 
 namespace Issue5Core
 {
-    public class Item
+    internal interface IModelView
     {
-        public int SortOrder { get; set; }
+        string IdString { get; }
+        string Name { get; set; }
+        string Description { get; set; }
+        int Id { get; }
+        DateTime Created { get; }
+    }
+
+    internal class Model : IModelView
+    {
+        public int Id { get; set; }
         public string Name { get; set; }
-        public int? Nullable { get; set; }
+        public string Description { get; set; }
+        public DateTime Created { get; set; }
+        public Guid[] guids { get; set; } // left uninitialized, as in the real-world report
+
+        public string IdString => Id.ToString();
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var items = new List<Item>
+            var items = new List<Model>
             {
-                new Item { SortOrder = 3, Name = "c", Nullable = null },
-                new Item { SortOrder = 1, Name = "a", Nullable = 5 },
-                new Item { SortOrder = 2, Name = "b", Nullable = 1 },
+                new Model { Id = 3, Name = "c", Created = new DateTime(2026, 3, 1) }, // guids left null
+                new Model { Id = 1, Name = "a", Created = new DateTime(2026, 1, 1), guids = new[] { Guid.NewGuid(), Guid.NewGuid() } },
+                new Model { Id = 2, Name = "b", Created = new DateTime(2026, 2, 1), guids = Array.Empty<Guid>() },
             };
 
-            var view = new BindingListView<Item>(items);
-
             try
             {
-                view.ApplySort("SortOrder");
-                Console.WriteLine("ApplySort(\"SortOrder\") ok");
-                foreach (var item in view)
-                {
-                    Console.WriteLine("  " + item.SortOrder);
-                }
+                var source = new BindingListView<IModelView>(items);
+                Console.WriteLine("Construct BindingListView<IModelView>: ok, count=" + source.Count);
+
+                Try(source, "Name");      // reference-type property (string)
+                Try(source, "IdString");  // reference-type property (string), read-only
+                Try(source, "Id");        // value-type property (int)
+                Try(source, "Created");   // value-type property (DateTime)
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ApplySort(\"SortOrder\"): ERROR - " + ex);
+                Console.WriteLine("Construct BindingListView<IModelView>: ERROR - " + ex);
             }
+        }
 
+        static void Try(BindingListView<IModelView> source, string property)
+        {
             try
             {
-                view.ApplySort("Name");
-                Console.WriteLine("ApplySort(\"Name\") ok");
+                source.ApplySort(property);
+                Console.WriteLine($"ApplySort(\"{property}\") ok");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ApplySort(\"Name\"): ERROR - " + ex);
-            }
-
-            try
-            {
-                view.ApplySort("SortOrder DESC");
-                Console.WriteLine("ApplySort(\"SortOrder DESC\") ok");
-                foreach (var item in view)
-                {
-                    Console.WriteLine("  " + item.SortOrder);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("ApplySort(\"SortOrder DESC\"): ERROR - " + ex);
-            }
-
-            try
-            {
-                view.ApplySort("Nullable");
-                Console.WriteLine("ApplySort(\"Nullable\") ok");
-                foreach (var item in view)
-                {
-                    Console.WriteLine("  " + (item.Nullable.HasValue ? item.Nullable.Value.ToString() : "null"));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("ApplySort(\"Nullable\"): ERROR - " + ex);
+                Console.WriteLine($"ApplySort(\"{property}\"): ERROR - {ex}");
             }
         }
     }

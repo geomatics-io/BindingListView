@@ -1420,11 +1420,19 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                DynamicMethod dm = new DynamicMethod("__blw_get_" + pi.Name, typeof(object), new Type[] { typeof(T) }, typeof(T), true);
+                // Use the declaring module, not typeof(T), as the DynamicMethod's owner:
+                // an interface type is not a valid owner ("Invalid type owner for
+                // DynamicMethod") and T is very commonly an interface here, e.g. when the
+                // bound list is exposed through a read-model interface rather than the
+                // concrete entity type.
+                DynamicMethod dm = new DynamicMethod("__blw_get_" + pi.Name, typeof(object), new Type[] { typeof(T) }, typeof(T).Module, true);
                 ILGenerator il = dm.GetILGenerator();
 
+                // getMethod may be an interface method, which has no method body of its
+                // own, so it must be invoked with Callvirt (virtual dispatch through the
+                // receiver's actual type), never Call.
                 il.Emit(OpCodes.Ldarg_0);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
 
                 // Return the result of the comparison.
                 il.Emit(OpCodes.Ret);
@@ -1438,7 +1446,12 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
+                // Use the declaring module, not typeof(T), as the DynamicMethod's owner:
+                // an interface type is not a valid owner ("Invalid type owner for
+                // DynamicMethod") and T is very commonly an interface here, e.g. when the
+                // bound list is exposed through a read-model interface rather than the
+                // concrete entity type.
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T).Module, true);
                 ILGenerator il = dm.GetILGenerator();
 
                 // Get the value of the first object's property and cast it to
@@ -1446,15 +1459,17 @@ namespace Equin.ApplicationFramework
                 // Castclass only affects the top of the evaluation stack, so casting
                 // afterwards would cast the second value instead of the first,
                 // leaving the first value's static type as plain "object" for the
-                // CompareTo call below.
+                // CompareTo call below. getMethod may be an interface method, which has
+                // no method body of its own, so it must be invoked with Callvirt
+                // (virtual dispatch through the receiver's actual type), never Call.
                 il.Emit(OpCodes.Ldarg_0);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
                 il.Emit(OpCodes.Castclass, typeof(IComparable));
 
                 // Get the value of the second object's property. It is passed to
                 // CompareTo(object), so it does not need to be cast itself.
                 il.Emit(OpCodes.Ldarg_1);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
 
                 // Interface methods have no method body of their own, so they must be
                 // invoked with Callvirt (virtual dispatch through the receiver's actual
@@ -1483,7 +1498,12 @@ namespace Equin.ApplicationFramework
                 MethodInfo getMethod = pi.GetGetMethod();
                 Debug.Assert(getMethod != null);
 
-                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
+                // Use the declaring module, not typeof(T), as the DynamicMethod's owner:
+                // an interface type is not a valid owner ("Invalid type owner for
+                // DynamicMethod") and T is very commonly an interface here, e.g. when the
+                // bound list is exposed through a read-model interface rather than the
+                // concrete entity type.
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T).Module, true);
                 ILGenerator il = dm.GetILGenerator();
 
                 // Get the value of the first object's property, box it, and cast it
@@ -1491,16 +1511,18 @@ namespace Equin.ApplicationFramework
                 // Castclass only affects the top of the evaluation stack, so casting
                 // afterwards would cast the second (boxed) value instead of the
                 // first, leaving the first value's static type as plain "object" for
-                // the CompareTo call below.
+                // the CompareTo call below. getMethod may be an interface method, which
+                // has no method body of its own, so it must be invoked with Callvirt
+                // (virtual dispatch through the receiver's actual type), never Call.
                 il.Emit(OpCodes.Ldarg_0);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
                 il.Emit(OpCodes.Box, pi.PropertyType);
                 il.Emit(OpCodes.Castclass, typeof(IComparable));
 
                 // Get the value of the second object's property and box it. It is
                 // passed to CompareTo(object), so it does not need to be cast itself.
                 il.Emit(OpCodes.Ldarg_1);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
                 il.Emit(OpCodes.Box, pi.PropertyType);
 
                 // Interface methods have no method body of their own, so they must be
@@ -1532,16 +1554,25 @@ namespace Equin.ApplicationFramework
 
                 //Type nullableType = typeof(Nullable<>).MakeGenericType(pi.PropertyType.GetGenericArguments()[0]);
 
-                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
+                // Use the declaring module, not typeof(T), as the DynamicMethod's owner:
+                // an interface type is not a valid owner ("Invalid type owner for
+                // DynamicMethod") and T is very commonly an interface here, e.g. when the
+                // bound list is exposed through a read-model interface rather than the
+                // concrete entity type.
+                DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T).Module, true);
                 ILGenerator il = dm.GetILGenerator();
 
+                // getMethod may be an interface method, which has no method body of its
+                // own, so it must be invoked with Callvirt (virtual dispatch through the
+                // receiver's actual type), never Call.
+
                 // Get the value of the first object's property.
-                il.Emit(OpCodes.Ldarg_0); 
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.Emit(OpCodes.Ldarg_0);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
 
                 // Get the value of the second object's property.
                 il.Emit(OpCodes.Ldarg_1);
-                il.EmitCall(OpCodes.Call, getMethod, null);
+                il.EmitCall(OpCodes.Callvirt, getMethod, null);
                 
                 // Call Nullable.Compare
                 il.EmitCall(OpCodes.Call, typeof(Nullable).GetMethod("Compare", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(pi.PropertyType.GetGenericArguments()[0]), null);
