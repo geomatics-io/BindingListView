@@ -2063,7 +2063,14 @@ namespace Equin.ApplicationFramework
         {
             object list = sourceListProperty.GetValue(@object);
             Type viewType = GetProvidedViewType(sourceListProperty);
-            return Activator.CreateInstance(viewType, list);
+
+            // Resolve the BindingListView<X>(IList) constructor explicitly instead of using
+            // Activator.CreateInstance(viewType, list). When list is null, the DefaultBinder
+            // cannot tell it apart from the BindingListView<X>(IContainer) constructor (both
+            // parameters are reference types null is assignable to) and throws
+            // AmbiguousMatchException.
+            ConstructorInfo ctor = viewType.GetConstructor(new Type[] { typeof(IList) });
+            return ctor.Invoke(new object[] { list });
         }
 
         private static Type GetProvidedViewType(PropertyDescriptor sourceListProperty)
