@@ -1441,18 +1441,27 @@ namespace Equin.ApplicationFramework
                 DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
                 ILGenerator il = dm.GetILGenerator();
 
-                // Get the value of the first object's property.
+                // Get the value of the first object's property and cast it to
+                // IComparable. This must happen before the second value is pushed:
+                // Castclass only affects the top of the evaluation stack, so casting
+                // afterwards would cast the second value instead of the first,
+                // leaving the first value's static type as plain "object" for the
+                // CompareTo call below.
                 il.Emit(OpCodes.Ldarg_0);
                 il.EmitCall(OpCodes.Call, getMethod, null);
+                il.Emit(OpCodes.Castclass, typeof(IComparable));
 
-                // Get the value of the second object's property.
+                // Get the value of the second object's property. It is passed to
+                // CompareTo(object), so it does not need to be cast itself.
                 il.Emit(OpCodes.Ldarg_1);
                 il.EmitCall(OpCodes.Call, getMethod, null);
 
-                // Cast the first value to IComparable and call CompareTo,
-                // passing the second value as the argument.
-                il.Emit(OpCodes.Castclass, typeof(IComparable));
-                il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
+                // Interface methods have no method body of their own, so they must be
+                // invoked with Callvirt (virtual dispatch through the receiver's actual
+                // type), never Call. The desktop .NET Framework JIT tolerated a plain
+                // Call here, but CoreCLR rejects the malformed IL (BadImageFormatException
+                // / "Invalid type owner for dynamic method").
+                il.EmitCall(OpCodes.Callvirt, typeof(IComparable).GetMethod("CompareTo"), null);
 
                 // If descending then multiply comparison result by -1
                 // to reverse the ordering.
@@ -1477,22 +1486,29 @@ namespace Equin.ApplicationFramework
                 DynamicMethod dm = new DynamicMethod("Get" + pi.Name, typeof(int), new Type[] { typeof(T), typeof(T) }, typeof(T), true);
                 ILGenerator il = dm.GetILGenerator();
 
-                // Get the value of the first object's property.
+                // Get the value of the first object's property, box it, and cast it
+                // to IComparable. This must happen before the second value is pushed:
+                // Castclass only affects the top of the evaluation stack, so casting
+                // afterwards would cast the second (boxed) value instead of the
+                // first, leaving the first value's static type as plain "object" for
+                // the CompareTo call below.
                 il.Emit(OpCodes.Ldarg_0);
                 il.EmitCall(OpCodes.Call, getMethod, null);
-                // Box the value type
                 il.Emit(OpCodes.Box, pi.PropertyType);
+                il.Emit(OpCodes.Castclass, typeof(IComparable));
 
-                // Get the value of the second object's property.
+                // Get the value of the second object's property and box it. It is
+                // passed to CompareTo(object), so it does not need to be cast itself.
                 il.Emit(OpCodes.Ldarg_1);
                 il.EmitCall(OpCodes.Call, getMethod, null);
-                // Box the value type
                 il.Emit(OpCodes.Box, pi.PropertyType);
 
-                // Cast the first value to IComparable and call CompareTo,
-                // passing the second value as the argument.
-                il.Emit(OpCodes.Castclass, typeof(IComparable));
-                il.EmitCall(OpCodes.Call, typeof(IComparable).GetMethod("CompareTo"), null);
+                // Interface methods have no method body of their own, so they must be
+                // invoked with Callvirt (virtual dispatch through the receiver's actual
+                // type), never Call. The desktop .NET Framework JIT tolerated a plain
+                // Call here, but CoreCLR rejects the malformed IL (BadImageFormatException
+                // / "Invalid type owner for dynamic method").
+                il.EmitCall(OpCodes.Callvirt, typeof(IComparable).GetMethod("CompareTo"), null);
 
                 // If descending then multiply comparison result by -1
                 // to reverse the ordering.
