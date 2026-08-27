@@ -2025,6 +2025,20 @@ namespace Equin.ApplicationFramework
                     originalProps = originalProps[0].GetChildProperties();
                 }
             }
+            else
+            {
+                // The IList indexer returns ObjectView<T> instances, not T instances.
+                // Wrap the property descriptors so their ComponentType matches what is
+                // actually returned, otherwise data-bound controls that call GetValue
+                // directly on the row object (rather than through ICustomTypeDescriptor,
+                // as DataGridView does) fail to cast the row to T.
+                List<PropertyDescriptor> objectViewProps = new List<PropertyDescriptor>();
+                foreach (PropertyDescriptor pd in originalProps)
+                {
+                    objectViewProps.Add(new ObjectViewPropertyDescriptor<T>(pd));
+                }
+                originalProps = new PropertyDescriptorCollection(objectViewProps.ToArray());
+            }
 
             List<PropertyDescriptor> newProps = new List<PropertyDescriptor>();
             foreach (PropertyDescriptor pd in AddProvidedViews(originalProps))
