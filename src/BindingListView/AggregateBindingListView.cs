@@ -2014,7 +2014,7 @@ namespace Equin.ApplicationFramework
             else
             {
                 // Get the properties ourself.
-                originalProps = System.Windows.Forms.ListBindingHelper.GetListItemProperties(typeof(T), listAccessors);
+                originalProps = GetListItemProperties(typeof(T), listAccessors);
             }
 
             if (listAccessors != null && listAccessors.Length > 0)
@@ -2118,6 +2118,24 @@ namespace Equin.ApplicationFramework
         string ITypedList.GetListName(PropertyDescriptor[] listAccessors)
         {
             return GetType().Name;
+        }
+
+        /// <summary>
+        /// A portable stand-in for System.Windows.Forms.ListBindingHelper.GetListItemProperties,
+        /// which is only available when referencing System.Windows.Forms.
+        /// </summary>
+        /// <remarks>
+        /// Unlike the WinForms helper, this only needs to support being called with the item
+        /// type itself (never a list/array/IEnumerable type), since that is the only way
+        /// <see cref="ITypedList.GetItemProperties"/> uses it above.
+        /// </remarks>
+        private static PropertyDescriptorCollection GetListItemProperties(Type itemType, PropertyDescriptor[] listAccessors)
+        {
+            if (listAccessors != null && listAccessors.Length > 0)
+            {
+                return listAccessors[0].GetChildProperties();
+            }
+            return TypeDescriptor.GetProperties(itemType);
         }
 
         #endregion
