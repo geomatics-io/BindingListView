@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Equin")]
 [assembly: AssemblyProduct("BindingListView")]
-[assembly: AssemblyCopyright("Copyright � Andrew Davey 2005")]
+[assembly: AssemblyCopyright("Copyright © Andrew Davey 2005")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
