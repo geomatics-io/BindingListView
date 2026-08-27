@@ -79,4 +79,4 @@ private void customersBindingSource_PositionChanged(object sender, EventArgs e)
 ```
 BindingSource.Current is typed as just Object, so the invalid cast to Customer cannot be caught at compile time. This causes a runtime cast exception instead.
 
-Copyright © [Andrew Davey](http://blogs.warwick.ac.uk/andrewdavey) 2006
+Copyright © [Andrew Davey](https://web.archive.org/web/20100706023113/http://blogs.warwick.ac.uk/andrewdavey/) 2006
