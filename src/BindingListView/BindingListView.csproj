@@ -34,6 +34,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <!-- Computes Version/AssemblyVersion/FileVersion/InformationalVersion/PackageVersion
        from the nearest reachable "vX.Y.Z" git tag (plus commit height for untagged
        commits, e.g. 1.3.3-alpha.0.4 four commits after v1.3.2). Non-SemVer tags such
