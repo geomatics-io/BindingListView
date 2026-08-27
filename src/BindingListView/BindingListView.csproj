@@ -13,18 +13,20 @@
   <PropertyGroup>
     <Product>BindingListView</Product>
     <Company>Equin</Company>
-    <Authors>Equin</Authors>
-    <Copyright>Copyright © Andrew Davey 2005</Copyright>
-    <Description>Advanced, data bindable, object list view.</Description>
+    <PackageId>Geomatics.IO.BindingListView</PackageId>
+    <Authors>Andrew Davey, Christian Arielli</Authors>
+    <Copyright>Copyright 2017-2026</Copyright>
+    <Description>Sort, filter and aggregate lists of business objects without all the boring code! This library provides a powerful "view" approach to data binding .NET objects to user interface controls.</Description>
     <PackageProjectUrl>https://github.com/geomatics-io/BindingListView</PackageProjectUrl>
     <RepositoryUrl>https://github.com/geomatics-io/BindingListView</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>winforms;databinding;bindinglist;datagridview;itypedlist</PackageTags>
+    <PackageTags>csharp;csharp-library;dotnet;winforms;datagridview;sort;filter</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <!-- TODO: pick a license and add a LICENSE file, then set e.g.
-         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-         Without this, `dotnet pack` emits an NU5104-style warning and the
-         package shows no license on nuget.org. -->
+    <!-- SPDX identifier for the BSD 3-Clause License in ..\..\LICENSE (original
+         SourceForge project license; SourceForge's own project page states only
+         "BSD License" without a variant, so BSD 3-Clause was chosen as the most
+         common default for that wording). -->
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,6 +38,7 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!-- Computes Version/AssemblyVersion/FileVersion/InformationalVersion/PackageVersion
