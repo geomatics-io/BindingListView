@@ -1,0 +1,55 @@
+name: Build & Pack NuGet Package
+
+on:
+  push:
+    branches: [ master, development ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ master, development ]
+  workflow_dispatch:
+
+# Only the library itself (src/BindingListView) is built here, not the demos or
+# tests/Issue2. Issue2 references commercial DevExpress packages that aren't
+# available on a public CI runner without a private feed + license.
+jobs:
+  build-and-pack:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # MinVer derives the package version from the nearest reachable git tag
+          # plus commit height. A shallow checkout (the default) hides tags and
+          # history, so MinVer would always fall back to 0.0.0-alpha.0.
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore src/BindingListView/BindingListView.csproj
+
+      - name: Build
+        run: dotnet build src/BindingListView/BindingListView.csproj --configuration Release --no-restore
+
+      - name: Pack
+        run: dotnet pack src/BindingListView/BindingListView.csproj --configuration Release --no-build --output "${{ github.workspace }}/artifacts"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: artifacts/*.nupkg
+
+      # Only runs when the push is a "vX.Y.Z" tag, so ordinary branch pushes and
+      # pull requests just build/pack for verification without publishing.
+      - name: Publish to NuGet.org
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --skip-duplicate

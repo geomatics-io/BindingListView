@@ -4,7 +4,27 @@
     <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
     <RootNamespace>Equin.ApplicationFramework</RootNamespace>
     <AssemblyName>BindingListView</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <!-- Assembly / NuGet package metadata. Version-related properties (Version,
+       AssemblyVersion, FileVersion, InformationalVersion, PackageVersion) are
+       NOT set here - MinVer (see below) computes and sets them from the git
+       history at build time. -->
+  <PropertyGroup>
+    <Product>BindingListView</Product>
+    <Company>Equin</Company>
+    <Authors>Equin</Authors>
+    <Copyright>Copyright © Andrew Davey 2005</Copyright>
+    <Description>Advanced, data bindable, object list view.</Description>
+    <PackageProjectUrl>https://github.com/geomatics-io/BindingListView</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/geomatics-io/BindingListView</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>winforms;databinding;bindinglist;datagridview;itypedlist</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- TODO: pick a license and add a LICENSE file, then set e.g.
+         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+         Without this, `dotnet pack` emits an NU5104-style warning and the
+         package shows no license on nuget.org. -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +32,23 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Computes Version/AssemblyVersion/FileVersion/InformationalVersion/PackageVersion
+       from the nearest reachable "vX.Y.Z" git tag (plus commit height for untagged
+       commits, e.g. 1.3.3-alpha.0.4 four commits after v1.3.2). Non-SemVer tags such
+       as v1.2.2.0 are ignored, not an error.
+       Requires the CI checkout to fetch full history (fetch-depth: 0), otherwise no
+       tags are visible and MinVer falls back to 0.0.0-alpha.0. -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!-- .NET Standard 2.0's netstandard.dll reference assembly does not declare
