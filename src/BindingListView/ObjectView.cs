@@ -158,6 +158,28 @@ namespace Equin.ApplicationFramework
                     _providedViews.Add(viewName, view);
                 }
             }
+
+            // TypeDescriptor (used above) only ever discovers properties, never fields.
+            // Some models - especially ones from third-party/vendor libraries the caller
+            // cannot change - expose a collection as a public field instead of a property,
+            // so provided views are created for qualifying fields here as well. Fields are
+            // read off the object's actual runtime type, since T may itself be an interface
+            // (which cannot declare fields).
+            foreach (FieldInfo field in Object.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                PropertyDescriptor fieldProp = new FieldPropertyDescriptor(field);
+                if (ShouldProvideViewOf(fieldProp))
+                {
+                    object view = _parent.CreateProvidedView(this, fieldProp);
+                    string viewName = GetProvidedViewName(fieldProp);
+                    // A property and a field could theoretically share the same name (e.g.
+                    // via a base class); the property wins since it was added first.
+                    if (!_providedViews.ContainsKey(viewName))
+                    {
+                        _providedViews.Add(viewName, view);
+                    }
+                }
+            }
         }
 
         #region INotifyEditableObject Members
