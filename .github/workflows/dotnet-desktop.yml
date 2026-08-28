@@ -14,6 +14,11 @@ on:
 jobs:
   build-and-pack:
     runs-on: windows-latest
+    # Mirrored to job level (not step level) so it's already resolved in the `env`
+    # context by the time the step below evaluates its `if:` condition - the `secrets`
+    # context itself isn't allowed in `if:` conditions at all.
+    env:
+      STRONG_NAME_KEY: ${{ secrets.STRONG_NAME_KEY }}
 
     steps:
       - name: Checkout
@@ -35,10 +40,10 @@ jobs:
       # secret (e.g. pull requests from forks, which GitHub withholds secrets from) still
       # succeed - they just produce an unsigned assembly instead of failing.
       - name: Write strong-name key from secret
-        if: ${{ secrets.STRONG_NAME_KEY != '' }}
+        if: ${{ env.STRONG_NAME_KEY != '' }}
         shell: pwsh
         run: |
-          $bytes = [Convert]::FromBase64String("${{ secrets.STRONG_NAME_KEY }}")
+          $bytes = [Convert]::FromBase64String($env:STRONG_NAME_KEY)
           [IO.File]::WriteAllBytes("src/BindingListView/BindingListView.snk", $bytes)
 
       - name: Restore
