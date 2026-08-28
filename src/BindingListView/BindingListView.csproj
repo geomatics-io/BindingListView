@@ -6,6 +6,20 @@
     <AssemblyName>BindingListView</AssemblyName>
   </PropertyGroup>
 
+  <!-- Strong-name signing. The .snk private key is intentionally not committed to the
+       repo (see .gitignore) - CI writes it from the STRONG_NAME_KEY GitHub secret before
+       building (see .github/workflows/dotnet-desktop.yml). Locally, signing is simply
+       skipped if you don't have a copy of the key at this path: the build still succeeds,
+       it just produces an unsigned assembly. Only the officially published CI build (which
+       has the secret) is strong-named. -->
+  <PropertyGroup>
+    <BindingListViewKeyFile>$(MSBuildThisFileDirectory)BindingListView.snk</BindingListViewKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="Exists('$(BindingListViewKeyFile)')">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(BindingListViewKeyFile)</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
   <!-- Assembly / NuGet package metadata. Version-related properties (Version,
        AssemblyVersion, FileVersion, InformationalVersion, PackageVersion) are
        NOT set here - MinVer (see below) computes and sets them from the git

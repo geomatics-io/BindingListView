@@ -29,6 +29,18 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      # The strong-name key is never committed to the repo (see .gitignore); it only
+      # exists as the STRONG_NAME_KEY secret (base64-encoded .snk). BindingListView.csproj
+      # only enables SignAssembly when this file is present, so builds that don't have the
+      # secret (e.g. pull requests from forks, which GitHub withholds secrets from) still
+      # succeed - they just produce an unsigned assembly instead of failing.
+      - name: Write strong-name key from secret
+        if: ${{ secrets.STRONG_NAME_KEY != '' }}
+        shell: pwsh
+        run: |
+          $bytes = [Convert]::FromBase64String("${{ secrets.STRONG_NAME_KEY }}")
+          [IO.File]::WriteAllBytes("src/BindingListView/BindingListView.snk", $bytes)
+
       - name: Restore
         run: dotnet restore src/BindingListView/BindingListView.csproj
 

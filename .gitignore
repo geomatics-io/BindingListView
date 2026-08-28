@@ -6,6 +6,9 @@
 *.user
 *.sln.docstates
 
+# Strong-name signing key - never committed, see src/BindingListView/BindingListView.csproj
+*.snk
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
